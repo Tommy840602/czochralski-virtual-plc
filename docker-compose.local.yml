@@ -1,0 +1,6 @@
+services:
+  backend:
+    environment:
+      PLC_DATA_ROOT: /data
+    volumes:
+      - ${DATA_ROOT:-..}:/data:ro

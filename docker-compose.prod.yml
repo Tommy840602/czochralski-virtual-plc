@@ -1,0 +1,41 @@
+# 生產部署（共享 VM）：本專案獨立栈，接入外部共享反向代理網路 `web`。
+# 不對主機發布端口 → 不與另外兩個專案搶端口；只有 Caddy 對外。
+#   啟動： docker compose -f docker-compose.prod.yml up -d --build
+# 需先： docker network create web   （若尚未建立）
+#   以及： 準備 .env.prod（見 deploy/.env.prod.example）與資料目錄
+
+name: plc
+
+services:
+  backend:
+    build: ./backend
+    environment:
+      PLC_DATA_ROOT: /data
+      PLC_AUTH_USERNAME: ${PLC_AUTH_USERNAME:?set in .env.prod}
+      PLC_AUTH_PASSWORD: ${PLC_AUTH_PASSWORD:?set in .env.prod}
+      PLC_AUTH_SECRET: ${PLC_AUTH_SECRET:?set a long random string}
+      PLC_INGOT_CACHE_SIZE: ${PLC_INGOT_CACHE_SIZE:-16}
+    volumes:
+      - ${DATA_ROOT:?set data path in .env.prod}:/data:ro
+    expose:
+      - "8000"
+    mem_limit: 640m
+    restart: unless-stopped
+    networks:
+      - internal
+
+  frontend:
+    build: ./frontend
+    container_name: plc_frontend        # Caddy 以此名反代
+    depends_on:
+      - backend
+    mem_limit: 128m
+    restart: unless-stopped
+    networks:
+      - internal        # 連後端
+      - web             # 供共享 Caddy 反代
+
+networks:
+  internal:
+  web:
+    external: true      # 由共享反向代理建立：docker network create web

@@ -1,0 +1,22 @@
+services:
+  backend:
+    build: ./backend
+    environment:
+      # GCS URI；部署在 GCP 時使用服務帳號的 Application Default Credentials。
+      PLC_DATA_ROOT: ${PLC_DATA_ROOT:-gs://your-bucket/plc-data}
+      PLC_GCS_PROJECT: ${PLC_GCS_PROJECT:-}
+      # 登入設定（於 .env 覆寫；未設則用程式預設 admin / admin0000）
+      PLC_AUTH_USERNAME: ${PLC_AUTH_USERNAME:-admin}
+      PLC_AUTH_PASSWORD: ${PLC_AUTH_PASSWORD:-admin0000}
+      PLC_AUTH_SECRET: ${PLC_AUTH_SECRET:-dev-secret-change-me-please-use-32+chars}
+    expose:
+      - "8000"
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    depends_on:
+      - backend
+    ports:
+      - "${WEB_PORT:-8080}:80"
+    restart: unless-stopped

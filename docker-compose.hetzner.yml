@@ -1,0 +1,28 @@
+# Hetzner 部署（與 SPC 共存於同一台 VM）。
+# 沿用 SPC 的模式：後端容器只監聽 127.0.0.1:8000，前端 dist 由宿主機 nginx 托管、
+# 反代 /api 到後端。資料讀 gs://ingot/（與 SPC 共用），憑證用 SPC 那把 SA 金鑰。
+#
+#   docker compose --env-file .env.hetzner -f docker-compose.hetzner.yml up -d --build
+#
+# 前端與 nginx/certbot 見 deploy/hetzner/plc.conf（需 sudo）。
+
+name: plc
+
+services:
+  backend:
+    build: ./backend
+    environment:
+      PLC_DATA_ROOT: gs://ingot/
+      GOOGLE_APPLICATION_CREDENTIALS: /gcloud/sa-key.json
+      # 勿設 PLC_GCS_PROJECT：gcsfs 2026.7 設了會轉匿名存取被 403（同 SPC 註解）
+      PLC_AUTH_USERNAME: ${PLC_AUTH_USERNAME:?}
+      PLC_AUTH_PASSWORD: ${PLC_AUTH_PASSWORD:?}
+      PLC_AUTH_SECRET: ${PLC_AUTH_SECRET:?}
+      PLC_INGOT_CACHE_SIZE: ${PLC_INGOT_CACHE_SIZE:-16}
+    volumes:
+      # 沿用 SPC 的唯讀 SA 金鑰
+      - ${SA_KEY_PATH:-/home/tommy/spc-platform/deploy/hetzner/sa-key.json}:/gcloud/sa-key.json:ro
+    ports:
+      - "127.0.0.1:8000:8000"      # 只綁 localhost，由宿主機 nginx 反代
+    mem_limit: 640m
+    restart: unless-stopped

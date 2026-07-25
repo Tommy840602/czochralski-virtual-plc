@@ -1,0 +1,27 @@
+# 共享反向代理（整台 VM 一份，三個專案共用）。
+# Caddy 擁有 80/443、自動 HTTPS，依網域路由到各專案容器。
+#   啟動： docker network create web   # 只需一次
+#          docker compose up -d
+# 各專案（含本 PLC）把 frontend 接到外部 `web` 網路，Caddy 即可反代。
+
+services:
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data          # 憑證持久化，勿刪
+      - caddy_config:/config
+    networks:
+      - web
+
+networks:
+  web:
+    external: true
+
+volumes:
+  caddy_data:
+  caddy_config:

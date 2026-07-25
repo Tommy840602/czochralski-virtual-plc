@@ -1,0 +1,23 @@
+# 共享反向代理設定。每個專案一個 block；把網域換成你自己的。
+# Caddy 會自動向 Let's Encrypt 申請並續期 TLS 憑證（需 DNS A 記錄已指向本機 IP）。
+
+# ---- PLC 研究平台 ----
+plc.tommy-huang.dev {
+	encode zstd gzip
+	reverse_proxy plc_frontend:80
+}
+
+# ---- 專案 2（範例，依實際填寫）----
+# app2.example.com {
+# 	reverse_proxy project2_frontend:80
+# }
+
+# ---- 專案 3（範例）----
+# app3.example.com {
+# 	reverse_proxy project3_web:3000
+# }
+
+# 沒有網域、只想用 IP 測試時，可改用（無自動 HTTPS）：
+# :80 {
+# 	reverse_proxy plc_frontend:80
+# }
