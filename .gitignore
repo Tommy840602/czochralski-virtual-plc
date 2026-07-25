@@ -1,0 +1,23 @@
+# Python
+backend/.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+
+# Node / frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# 環境設定（含機器/機密，勿提交；用 .env.example 為範本）
+.env
+
+# 資料不進 repo（232MB 逐點 parquet，存於專案外部）
+rawdata/
+table2/
+*.parquet
+!backend/app/assets/*.json
+
+# OS
+.DS_Store
