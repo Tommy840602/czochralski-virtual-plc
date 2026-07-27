@@ -26,6 +26,8 @@ run_as_root() {
   fi
 }
 
+run_as_root bash scripts/configure-nginx-cache.sh
+
 compose=(
   docker compose
   --env-file "$env_file"
