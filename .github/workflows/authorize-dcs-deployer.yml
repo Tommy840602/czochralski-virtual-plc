@@ -1,0 +1,75 @@
+name: Authorize DCS deployer on shared Hetzner VM
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  authorize:
+    name: Install the dedicated DCS deployment key
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      DEPLOY_HOST: ${{ secrets.HETZNER_HOST }}
+      DEPLOY_USER: ${{ secrets.HETZNER_USER }}
+      DEPLOY_PORT: ${{ secrets.HETZNER_PORT }}
+      DEPLOY_SSH_KEY: ${{ secrets.HETZNER_SSH_KEY }}
+      DEPLOY_KNOWN_HOSTS: ${{ secrets.HETZNER_KNOWN_HOSTS }}
+      DCS_DEPLOY_PUBLIC_KEY: ${{ secrets.DCS_DEPLOY_PUBLIC_KEY }}
+    steps:
+      - name: Validate authorization inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ -n "$DEPLOY_HOST" && -n "$DEPLOY_USER" ]]
+          [[ -n "$DEPLOY_SSH_KEY" && -n "$DEPLOY_KNOWN_HOSTS" ]]
+          [[ "$DCS_DEPLOY_PUBLIC_KEY" == ssh-ed25519\ * ]]
+
+      - name: Configure pinned SSH host identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          install -d -m 700 "$HOME/.ssh"
+          install -m 600 /dev/null "$HOME/.ssh/id_ed25519"
+          install -m 600 /dev/null "$HOME/.ssh/known_hosts"
+          printf '%s\n' "$DEPLOY_SSH_KEY" > "$HOME/.ssh/id_ed25519"
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+
+      - name: Authorize the DCS deployment key without replacing existing keys
+        shell: bash
+        run: |
+          set -euo pipefail
+          deploy_port="${DEPLOY_PORT:-22}"
+          encoded_key="$(printf '%s' "$DCS_DEPLOY_PUBLIC_KEY" | base64 -w 0)"
+          ssh \
+            -p "$deploy_port" \
+            -i "$HOME/.ssh/id_ed25519" \
+            -o BatchMode=yes \
+            "$DEPLOY_USER@$DEPLOY_HOST" \
+            "bash -s -- '$encoded_key'" <<'REMOTE'
+          set -euo pipefail
+          encoded_key="$1"
+          public_key="$(printf '%s' "$encoded_key" | base64 -d)"
+          umask 077
+          mkdir -p "$HOME/.ssh"
+          touch "$HOME/.ssh/authorized_keys"
+          if ! grep -qxF "$public_key" "$HOME/.ssh/authorized_keys"; then
+            printf '%s\n' "$public_key" >> "$HOME/.ssh/authorized_keys"
+          fi
+          REMOTE
+
+      - name: Verify the key is present
+        shell: bash
+        run: |
+          set -euo pipefail
+          deploy_port="${DEPLOY_PORT:-22}"
+          fingerprint="$(printf '%s' "$DCS_DEPLOY_PUBLIC_KEY" | ssh-keygen -lf - | awk '{print $2}')"
+          ssh \
+            -p "$deploy_port" \
+            -i "$HOME/.ssh/id_ed25519" \
+            -o BatchMode=yes \
+            "$DEPLOY_USER@$DEPLOY_HOST" \
+            "ssh-keygen -lf '$HOME/.ssh/authorized_keys'" |
+            grep -F "$fingerprint"
