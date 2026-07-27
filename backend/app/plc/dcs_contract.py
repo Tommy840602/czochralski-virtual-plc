@@ -4,6 +4,8 @@ from app.plc.models import PlcRuntimeSnapshot, utc_now
 
 DCS_TELEMETRY_SCHEMA = "cz.plc.dcs.telemetry.v1"
 DCS_SOURCE = "CZ_VIRTUAL_PLC"
+# PLC control scan remains 200 ms. Only the cross-system monitoring cadence is 1 Hz.
+REALTIME_MONITORING_INTERVAL_MS = 1_000
 
 
 def dcs_snapshot(snapshot: PlcRuntimeSnapshot) -> dict[str, object]:
@@ -62,6 +64,7 @@ def dcs_snapshot(snapshot: PlcRuntimeSnapshot) -> dict[str, object]:
         "plcAlarmCount": len(snapshot.alarms),
         "plcDataContract": DCS_TELEMETRY_SCHEMA,
         "plcAuthoritative": True,
+        "monitoringIntervalMs": REALTIME_MONITORING_INTERVAL_MS,
         "plcArgonValveOutput": outputs.argon_valve_pct,
         "plcCoolingOutput": outputs.cooling_output_pct,
     }

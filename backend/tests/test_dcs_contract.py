@@ -1,4 +1,8 @@
-from app.plc.dcs_contract import DCS_TELEMETRY_SCHEMA, dcs_snapshot
+from app.plc.dcs_contract import (
+    DCS_TELEMETRY_SCHEMA,
+    REALTIME_MONITORING_INTERVAL_MS,
+    dcs_snapshot,
+)
 from app.main import app
 from app.plc.models import (
     InterlockStatus,
@@ -62,6 +66,7 @@ def test_maps_authoritative_plc_image_to_dcs_contract():
     assert telemetry["simulationSource"] == "CZ_VIRTUAL_PLC"
     assert telemetry["plcAuthoritative"] is True
     assert telemetry["plcInterlockPermit"] is True
+    assert telemetry["monitoringIntervalMs"] == REALTIME_MONITORING_INTERVAL_MS == 1_000
 
 
 def test_internal_dcs_snapshot_is_versioned_and_not_cached():

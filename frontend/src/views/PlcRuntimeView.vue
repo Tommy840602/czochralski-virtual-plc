@@ -19,7 +19,7 @@ const inputRows = [
 ]
 
 const outputRows = [
-  ['heater_output_pct', 'Heater Output', '%'],
+  ['heater_output_pct', 'Heater Power SV', '%'],
   ['pull_speed_mm_min', 'Pull Speed Output', 'mm/min'],
   ['argon_valve_pct', 'Argon Valve', '%'],
   ['vacuum_pump_pct', 'Vacuum Pump', '%'],
@@ -38,7 +38,7 @@ const stateClass = computed(() => {
 
 function formatValue(value) {
   if (typeof value === 'number') {
-    return Number.isInteger(value) ? value.toString() : value.toFixed(2)
+    return value.toFixed(3)
   }
   if (typeof value === 'boolean') return value ? 'TRUE' : 'FALSE'
   return value ?? '—'
