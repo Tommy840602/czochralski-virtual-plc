@@ -105,12 +105,15 @@ validation；三者都成功才執行 production deploy。請在 GitHub 的
 | `HETZNER_PORT` | 選填，預設 `22` |
 | `HETZNER_APP_DIR` | 選填，預設 `/srv/plc/app` |
 | `SIMULATOR_REPO_SSH_KEY` | `czochralski-simulator` private repo 的唯讀 deploy key |
+| `PLC_AUTH_USERNAME` | Production 登入帳號，不可使用 `admin` |
+| `PLC_AUTH_PASSWORD` | Production 登入密碼，至少 12 字元 |
+| `PLC_AUTH_SECRET` | Token 簽章金鑰，至少 32 字元的隨機值 |
 
 GitHub Actions 會自動建立 `HETZNER_APP_DIR`（預設 `/srv/plc/app`），並將
 已通過 CI 的 `main` 工作目錄同步進去，不需要 VM 具備 GitHub repository
-存取權。同步會保留 VM 專案根目錄既有的 `.env.hetzner`；第一次部署前仍需
-由 `deploy/.env.hetzner.example` 複製並填妥。若 VM 已有 PLC 部署，CI 會先從
-既有 PLC 環境檔或 backend 容器安全遷移帳密，且不會在日誌輸出密碼。
+存取權。同步會保留 VM 專案根目錄既有的 `.env.hetzner`，再以 GitHub
+production secrets 更新 PLC 帳密與 runtime 連線設定，不會在日誌輸出密碼。
+若 VM 已有 PLC 部署，一次性 bootstrap 仍可從既有環境檔或 backend 容器遷移。
 Production workflow 會從獨立 private repo 同步並先啟動 Plant Simulator；
 其 Compose 會建立 `cz-industrial` network，通過 `/healthz` 後才部署 PLC。
 缺少 GitHub secrets 時 deploy job 會顯示 warning 並安全跳過，不影響 CI。

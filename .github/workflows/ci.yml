@@ -75,12 +75,15 @@ jobs:
       DEPLOY_KNOWN_HOSTS: ${{ secrets.HETZNER_KNOWN_HOSTS }}
       DEPLOY_APP_DIR: ${{ secrets.HETZNER_APP_DIR }}
       SIMULATOR_REPO_SSH_KEY: ${{ secrets.SIMULATOR_REPO_SSH_KEY }}
+      PLC_AUTH_USERNAME: ${{ secrets.PLC_AUTH_USERNAME }}
+      PLC_AUTH_PASSWORD: ${{ secrets.PLC_AUTH_PASSWORD }}
+      PLC_AUTH_SECRET: ${{ secrets.PLC_AUTH_SECRET }}
     steps:
       - name: Check deployment configuration
         id: preflight
         shell: bash
         run: |
-          if [[ -z "$DEPLOY_HOST" || -z "$DEPLOY_USER" || -z "$DEPLOY_SSH_KEY" || -z "$DEPLOY_KNOWN_HOSTS" || -z "$SIMULATOR_REPO_SSH_KEY" ]]; then
+          if [[ -z "$DEPLOY_HOST" || -z "$DEPLOY_USER" || -z "$DEPLOY_SSH_KEY" || -z "$DEPLOY_KNOWN_HOSTS" || -z "$SIMULATOR_REPO_SSH_KEY" || -z "$PLC_AUTH_USERNAME" || -z "$PLC_AUTH_PASSWORD" || -z "$PLC_AUTH_SECRET" ]]; then
             echo "::warning::Hetzner deployment skipped: production environment secrets are incomplete."
             echo "enabled=false" >> "$GITHUB_OUTPUT"
           else
@@ -133,6 +136,34 @@ jobs:
             --exclude='plant-simulator/' \
             -e "ssh -p $deploy_port -i $HOME/.ssh/id_ed25519 -o BatchMode=yes" \
             ./ "$DEPLOY_USER@$DEPLOY_HOST:$deploy_dir/"
+
+      - name: Configure PLC production environment
+        if: steps.preflight.outputs.enabled == 'true'
+        shell: bash
+        run: |
+          deploy_port="${DEPLOY_PORT:-22}"
+          deploy_dir="${DEPLOY_APP_DIR:-/srv/plc/app}"
+          dotenv_line() {
+            local key="$1"
+            local value="${2//\'/\\\'}"
+            printf "%s='%s'\n" "$key" "$value"
+          }
+          {
+            dotenv_line PLC_AUTH_USERNAME "$PLC_AUTH_USERNAME"
+            dotenv_line PLC_AUTH_PASSWORD "$PLC_AUTH_PASSWORD"
+            dotenv_line PLC_AUTH_SECRET "$PLC_AUTH_SECRET"
+            printf 'PLC_INGOT_CACHE_SIZE=16\n'
+            printf 'PLC_RUNTIME_ENABLED=true\n'
+            printf 'PLC_SCAN_INTERVAL_SECONDS=0.2\n'
+            printf 'PLC_PLANT_OPCUA_ENDPOINT=opc.tcp://plant-simulator:4840/plant-simulator/server/\n'
+            printf 'PLC_PLANT_OPCUA_NAMESPACE=urn:tommy-huang:cz-plant-simulator\n'
+            printf 'PLC_PLANT_API_URL=http://plant-simulator:8090\n'
+            printf 'SA_KEY_PATH=/home/tommy/spc-platform/deploy/hetzner/sa-key.json\n'
+          } | ssh -p "$deploy_port" \
+            -i "$HOME/.ssh/id_ed25519" \
+            -o BatchMode=yes \
+            "$DEPLOY_USER@$DEPLOY_HOST" \
+            "umask 077; cat > '$deploy_dir/.env.hetzner'"
 
       - name: Deploy independent Plant Simulator
         if: steps.preflight.outputs.enabled == 'true'
