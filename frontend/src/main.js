@@ -7,8 +7,9 @@ import { useAuthStore } from './stores/auth'
 import './styles.css'
 
 const routes = [
-  { path: '/', redirect: '/overview' },
+  { path: '/', redirect: '/plc' },
   { path: '/login', component: () => import('./views/LoginView.vue'), meta: { public: true } },
+  { path: '/plc', component: () => import('./views/PlcRuntimeView.vue') },
   { path: '/overview', component: () => import('./views/OverviewView.vue') },
   { path: '/explore', component: () => import('./views/ExploreView.vue') },
   {
@@ -46,7 +47,7 @@ router.beforeEach((to) => {
   if (!to.meta.public && !auth.isAuthenticated) {
     return { path: '/login', query: to.fullPath !== '/' ? { redirect: to.fullPath } : {} }
   }
-  if (to.path === '/login' && auth.isAuthenticated) return '/overview'
+  if (to.path === '/login' && auth.isAuthenticated) return '/plc'
 })
 
 app.mount('#app')

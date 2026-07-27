@@ -5,6 +5,7 @@ import { theme, toggleTheme } from '@/composables/theme'
 
 // 每頁一個語意化 stroke 圖標（inner SVG，24×24），hover 時彈跳動畫
 const links = [
+  { to: '/plc', label: 'PLC Runtime', icon: '<path d="M4 4h16v16H4z"/><path d="M8 8h3v3H8zM13 8h3M13 11h3M8 15h8"/>' },
   { to: '/overview', label: '總覽', icon: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/>' },
   { to: '/explore', label: '晶棒探索', icon: '<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>' },
   { to: '/precursor', label: '前兆分析', icon: '<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>' },
@@ -34,17 +35,16 @@ function logout() {
         <div class="brand-icon-wrap">
           <img
             src="/plc.png"
-            alt="PLC Research Platform"
+            alt="CZ Virtual PLC"
             class="brand-icon"
           />
         </div>
 
         <div class="brand-text">
           <h1>
-            <span>PLC Research</span>
-            <span>Platform</span>
+            <span>CZ Virtual PLC</span>
           </h1>
-          <span class="brand-subtitle">可程式邏輯控制器研究平台</span>
+          <span class="brand-subtitle">設備控制與製程研究平台</span>
         </div>
       </div>
 

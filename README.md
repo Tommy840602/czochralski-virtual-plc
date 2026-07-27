@@ -1,7 +1,8 @@
-# 長晶爐 PLC 研究平台 · Czochralski PLC Research Platform
+# CZ Virtual PLC & Research Platform
 
-> CZ 單晶矽長晶製程的 PLC 時序資料研究平台 —— 從資料探索、前兆分析、控制器辨識，
-> 到斷線預警與運營風險，一套端到端的分析系統。
+> 獨立 Plant Simulator 的控制中樞：透過 OPC UA 掃描 Sensor/I/O，執行
+> Interlock、Sequence 與 Local Control，再將可信任的 PLC 資料交給 DCS。
+> 原有的 CZ 時序資料研究、預警與品質分析功能完整保留。
 
 🔗 **Live Demo**：[plc.tommy-huang.dev](https://plc.tommy-huang.dev)（展示帳號 `admin`，密碼請洽作者）
 
@@ -11,10 +12,36 @@
 ![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)
 ![GCS](https://img.shields.io/badge/Google_Cloud_Storage-4285F4?logo=googlecloud&logoColor=white)
+![OPC UA](https://img.shields.io/badge/OPC_UA-1.1.8-3fb6ad)
 
 ---
 
-## ✨ 專案亮點
+## ⚙️ Virtual PLC Runtime
+
+```text
+Plant Simulator ⇄ Virtual PLC → DCS → Historian → SPC
+   Sensor / I/O     Control     Operations      Quality
+```
+
+本 repo 現在是架構中的 PLC 責任邊界：
+
+- 以固定週期讀取 `Plant.*` 與 `Status.*` OPC UA tags，建立 PLC input image。
+- 檢查 OPC UA、通訊、資料品質、安全門與 E-Stop interlocks。
+- 依 `MELT → STABILIZE → SEED → NECK → CROWN → BODY → TAIL`
+  製程階段輸出 actuator 命令。
+- BODY 階段執行溫度與直徑的本機控制邏輯。
+- 聯鎖跳脫或通訊錯誤時，強制 heater、rotation、pull speed 等輸出歸零。
+- `/plc` 操作頁提供 START / STOP / RESET、I/O image、聯鎖與 alarm 監看。
+- `/api/plc/status`、`/api/plc/tags`、`/api/plc/commands/{command}`
+  皆受既有登入驗證保護。
+
+Plant Simulator 仍獨立維護於
+[`Tommy840602/czochralski-simulator`](https://github.com/Tommy840602/czochralski-simulator)；
+它只負責設備物理、Sensor、Actuator 與故障模擬，不執行 PLC 控制邏輯。
+
+---
+
+## ✨ 研究平台亮點
 
 這不是一個「跑出高 AUC 就收工」的展示，而是一套**誠實面對資料的分析系統**：
 
@@ -33,10 +60,11 @@
 
 ---
 
-## 🧭 功能總覽（8 頁）
+## 🧭 功能總覽（PLC Runtime + 8 個研究頁）
 
 | 頁面 | 內容 |
 | --- | --- |
+| **PLC Runtime** | OPC UA 連線、PLC scan、I/O image、Interlock、Sequence、Local Control、Alarm 與操作命令 |
 | **總覽** | 分組分布、各爐台晶棒／異常數、斷線發生的製程階段 |
 | **晶棒探索** | 依分組／爐台／異常狀態篩選；單棒逐點訊號檢視（NECK/CROWN/BODY/TAIL 相位色帶、多訊號疊圖、LTTB 降採樣、切段表）|
 | **前兆分析** | 斷線前視窗特徵鑑別力排行（線上重算 Mann-Whitney AUC + BH-FDR）、ROC 與 case/control 分布 |
@@ -51,6 +79,10 @@
 ## 🏗 系統架構
 
 ```
+ Plant Simulator ── OPC UA ──► Virtual PLC Runtime
+       ▲                           │
+       └──── actuator outputs ─────┘
+                                   │ authenticated API
                     Browser (Vue 3 + ECharts)
                             │  HTTPS
                     ┌───────▼────────┐
@@ -59,7 +91,7 @@
                             │  127.0.0.1:8000
                     ┌───────▼────────┐
                     │  FastAPI (分層) │
-                    │  routes → services → repository
+                    │  PLC runtime + research services
                     └───────┬────────┘
                             │  fsspec
                     ┌───────▼────────┐
@@ -67,11 +99,12 @@
                     └────────────────┘
 ```
 
-**後端分層**（`backend/app/`）：`repositories/base.py` 是抽象契約，
+**後端分層**（`backend/app/`）：`plc/` 是 OPC UA adapter、tag contract、
+scan runtime 與 I/O model；`repositories/base.py` 是研究資料抽象契約，
 `parquet_repo` 以 fsspec 讀本機或 GCS 並含 LRU 快取；`services/` 為純運算；
 `api/routes/` 只做參數轉換與錯誤碼。要換 DuckDB/Postgres 只需實作介面、改 `deps`。
 
-**技術棧**：FastAPI · Vue 3 · Vue Router · Pinia · ECharts · pandas / numpy / scipy ·
+**技術棧**：FastAPI · asyncua / OPC UA · Vue 3 · Vue Router · Pinia · ECharts · pandas / numpy / scipy ·
 fsspec / gcsfs · Docker · nginx · Let's Encrypt。分析用純 numpy/scipy 手寫
 （IRLS 邏輯迴歸、Mann-Whitney、BH-FDR、Kaplan-Meier、LTTB），不依賴 scikit-learn。
 
@@ -109,6 +142,25 @@ npm install && npm run dev
 或一鍵 Docker：`docker compose up --build`（開 http://localhost:8080）。
 資料根目錄可為本機路徑或 `gs://bucket/prefix`，由 `PLC_DATA_ROOT` 切換。
 
+### 與獨立 Plant Simulator 整合
+
+兩個 repo 保持獨立部署，但加入同一個內部 Docker network：
+
+```bash
+# terminal 1：czochralski-simulator repo
+docker compose up -d --build
+
+# terminal 2：本 repo
+docker compose -f docker-compose.yml -f docker-compose.runtime.yml up -d --build
+```
+
+Simulator 會建立 `cz-industrial` network；PLC backend 透過
+`plant-simulator:4840` 讀寫 OPC UA，不需把 OPC UA 暴露到公網。
+登入後開啟 <http://localhost:8080/plc> 即可操作。
+
+聯鎖採 stop-dominant：任何 blocking interlock 跳脫時，PLC 會清除 run request、
+寫入安全輸出；條件恢復後也不會自動重啟，必須由操作者再次下達 START。
+
 ---
 
 ## ☁ 部署（Hetzner，與 SPC 共享 VM）
@@ -128,13 +180,14 @@ npm install && npm run dev
 
 ```
 backend/app/
+  plc/           OPC UA adapter、Tag contract、I/O model、scan runtime
   core/          設定、訊號分類與相位定義、簽章 token
   repositories/  抽象契約 → parquet_repo（fsspec 本機/GCS + LRU）
   services/      catalog / series / precursor / profile / control
                  earlywarning / quality / risk（純運算）
   api/routes/    薄 HTTP 層 + JWT 保護
 frontend/src/
-  views/         8 頁 + 登入
+  views/         PLC Runtime + 8 個研究頁 + 登入
   composables/   theme（日夜）、useAsync、format
   components/     EChart（主題感知薄封裝）、StateBlock
 analysis/        配對世代斷線分析管線

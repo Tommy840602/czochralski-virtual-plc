@@ -16,6 +16,11 @@ services:
       PLC_AUTH_PASSWORD: ${PLC_AUTH_PASSWORD:?set in .env.prod}
       PLC_AUTH_SECRET: ${PLC_AUTH_SECRET:?set a long random string}
       PLC_INGOT_CACHE_SIZE: ${PLC_INGOT_CACHE_SIZE:-16}
+      PLC_RUNTIME_ENABLED: ${PLC_RUNTIME_ENABLED:-true}
+      PLC_SCAN_INTERVAL_SECONDS: ${PLC_SCAN_INTERVAL_SECONDS:-0.2}
+      PLC_PLANT_OPCUA_ENDPOINT: ${PLC_PLANT_OPCUA_ENDPOINT:-opc.tcp://plant-simulator:4840/plant-simulator/server/}
+      PLC_PLANT_OPCUA_NAMESPACE: ${PLC_PLANT_OPCUA_NAMESPACE:-urn:tommy-huang:cz-plant-simulator}
+      PLC_PLANT_API_URL: ${PLC_PLANT_API_URL:-http://plant-simulator:8090}
     volumes:
       - ${DATA_ROOT:?set data path in .env.prod}:/data:ro
     expose:
@@ -24,6 +29,7 @@ services:
     restart: unless-stopped
     networks:
       - internal
+      - industrial
 
   frontend:
     build: ./frontend
@@ -40,3 +46,6 @@ networks:
   internal:
   web:
     external: true      # 由共享反向代理建立：docker network create web
+  industrial:
+    external: true      # 與獨立 Plant Simulator 共用：docker network create cz-industrial
+    name: cz-industrial

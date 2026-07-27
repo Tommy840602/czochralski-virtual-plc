@@ -3,7 +3,7 @@ import posixpath
 from pathlib import Path
 from typing import Literal
 
-from pydantic import model_validator
+from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # backend/app/core/config.py -> backend/app -> backend -> plc-research -> output
@@ -36,6 +36,15 @@ class Settings(BaseSettings):
     max_series_points: int = 3000
     # 讀進記憶體的晶棒逐點資料快取數量（每根約 11k 列 × 70 欄）
     ingot_cache_size: int = 24
+
+    # Virtual PLC runtime；開發環境預設關閉，接上 Plant Simulator 時再啟用。
+    runtime_enabled: bool = False
+    scan_interval_seconds: float = Field(default=0.2, gt=0.0, le=5.0)
+    plant_opcua_endpoint: str = (
+        "opc.tcp://plant-simulator:4840/plant-simulator/server/"
+    )
+    plant_opcua_namespace: str = "urn:tommy-huang:cz-plant-simulator"
+    plant_api_url: str = "http://plant-simulator:8090"
 
     @model_validator(mode="after")
     def _validate_production_security(self):

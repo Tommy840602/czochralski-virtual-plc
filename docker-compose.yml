@@ -9,6 +9,12 @@ services:
       PLC_AUTH_USERNAME: ${PLC_AUTH_USERNAME:-admin}
       PLC_AUTH_PASSWORD: ${PLC_AUTH_PASSWORD:-admin0000}
       PLC_AUTH_SECRET: ${PLC_AUTH_SECRET:-dev-secret-change-me-please-use-32+chars}
+      # Virtual PLC 與獨立 Plant Simulator 的通訊設定。
+      PLC_RUNTIME_ENABLED: ${PLC_RUNTIME_ENABLED:-false}
+      PLC_SCAN_INTERVAL_SECONDS: ${PLC_SCAN_INTERVAL_SECONDS:-0.2}
+      PLC_PLANT_OPCUA_ENDPOINT: ${PLC_PLANT_OPCUA_ENDPOINT:-opc.tcp://plant-simulator:4840/plant-simulator/server/}
+      PLC_PLANT_OPCUA_NAMESPACE: ${PLC_PLANT_OPCUA_NAMESPACE:-urn:tommy-huang:cz-plant-simulator}
+      PLC_PLANT_API_URL: ${PLC_PLANT_API_URL:-http://plant-simulator:8090}
     expose:
       - "8000"
     restart: unless-stopped

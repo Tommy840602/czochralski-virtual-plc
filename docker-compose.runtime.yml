@@ -1,0 +1,14 @@
+# 將獨立 PLC stack 接到 Plant Simulator 建立的 cz-industrial network。
+# 先啟動 czochralski-simulator，再套用此 overlay。
+services:
+  backend:
+    environment:
+      PLC_RUNTIME_ENABLED: "true"
+    networks:
+      - default
+      - industrial
+
+networks:
+  industrial:
+    external: true
+    name: cz-industrial

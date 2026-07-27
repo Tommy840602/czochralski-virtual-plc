@@ -62,6 +62,9 @@ export const get = (path, params) => request(path, { params })
 export const post = (path, body) => request(path, { method: 'POST', body })
 
 export const api = {
+  plcStatus: () => get('/plc/status'),
+  plcTags: () => get('/plc/tags'),
+  plcCommand: (command) => post(`/plc/commands/${command}`),
   meta: () => get('/meta'),
   summary: () => get('/summary'),
   ingots: (params) => get('/ingots', params),

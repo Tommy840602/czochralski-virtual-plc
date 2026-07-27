@@ -1,3 +1,5 @@
+from contextlib import asynccontextmanager
+
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -8,6 +10,7 @@ from app.api.routes import (
     catalog,
     control,
     earlywarning,
+    plc_runtime,
     precursor,
     profile,
     quality,
@@ -15,13 +18,26 @@ from app.api.routes import (
     series,
 )
 from app.core.config import get_settings
+from app.plc.deps import get_plc_runtime
 
 settings = get_settings()
 
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    runtime = get_plc_runtime()
+    await runtime.start()
+    try:
+        yield
+    finally:
+        await runtime.stop()
+
+
 app = FastAPI(
-    title="長晶爐 PLC 研究平台",
-    description="CZ 長晶製程 PLC 時序資料的探索、前兆分析與輪廓監控",
-    version="0.1.0",
+    title="CZ Virtual PLC & Research Platform",
+    description="長晶爐 Virtual PLC 控制、I/O 聯鎖與製程資料研究平台",
+    version="0.2.0",
+    lifespan=lifespan,
 )
 
 app.add_middleware(
@@ -36,6 +52,7 @@ app.include_router(auth.router, prefix="/api")
 
 # 其餘資料端點一律需要有效 token
 for router in (
+    plc_runtime.router,
     catalog.router,
     series.router,
     precursor.router,

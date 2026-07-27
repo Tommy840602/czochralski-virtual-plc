@@ -19,7 +19,7 @@ async function submit() {
   try {
     const data = await api.login(username.value, password.value)
     auth.setSession(data)
-    router.replace(route.query.redirect || '/overview')
+    router.replace(route.query.redirect || '/plc')
   } catch (e) {
     error.value = e.message || '登入失敗'
   } finally {
@@ -44,8 +44,8 @@ async function submit() {
 
     <form class="login-card" @submit.prevent="submit">
       <div class="login-brand">
-        <h1>PLC Research Platform</h1>
-        <span>可程式邏輯控制器研究平台</span>
+        <h1>CZ Virtual PLC</h1>
+        <span>設備控制與製程研究平台</span>
       </div>
 
       <label>帳號</label>
