@@ -74,13 +74,14 @@ jobs:
       DEPLOY_SSH_KEY: ${{ secrets.HETZNER_SSH_KEY }}
       DEPLOY_KNOWN_HOSTS: ${{ secrets.HETZNER_KNOWN_HOSTS }}
       DEPLOY_APP_DIR: ${{ secrets.HETZNER_APP_DIR }}
+      SIMULATOR_REPO_SSH_KEY: ${{ secrets.SIMULATOR_REPO_SSH_KEY }}
     steps:
       - name: Check deployment configuration
         id: preflight
         shell: bash
         run: |
-          if [[ -z "$DEPLOY_HOST" || -z "$DEPLOY_USER" || -z "$DEPLOY_SSH_KEY" || -z "$DEPLOY_KNOWN_HOSTS" ]]; then
-            echo "::warning::Hetzner deployment skipped: configure HETZNER_HOST, HETZNER_USER, HETZNER_SSH_KEY and HETZNER_KNOWN_HOSTS in the production environment."
+          if [[ -z "$DEPLOY_HOST" || -z "$DEPLOY_USER" || -z "$DEPLOY_SSH_KEY" || -z "$DEPLOY_KNOWN_HOSTS" || -z "$SIMULATOR_REPO_SSH_KEY" ]]; then
+            echo "::warning::Hetzner deployment skipped: production environment secrets are incomplete."
             echo "enabled=false" >> "$GITHUB_OUTPUT"
           else
             echo "enabled=true" >> "$GITHUB_OUTPUT"
@@ -88,6 +89,16 @@ jobs:
 
       - uses: actions/checkout@v4
         if: steps.preflight.outputs.enabled == 'true'
+
+      - name: Checkout independent Plant Simulator
+        if: steps.preflight.outputs.enabled == 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: Tommy840602/czochralski-simulator
+          ref: main
+          path: plant-simulator
+          ssh-key: ${{ secrets.SIMULATOR_REPO_SSH_KEY }}
+          persist-credentials: false
 
       - name: Configure SSH
         if: steps.preflight.outputs.enabled == 'true'
@@ -105,16 +116,35 @@ jobs:
         run: |
           deploy_port="${DEPLOY_PORT:-22}"
           deploy_dir="${DEPLOY_APP_DIR:-/srv/plc/app}"
+          simulator_dir="/srv/plant-simulator/app"
           ssh -p "$deploy_port" \
             -i "$HOME/.ssh/id_ed25519" \
             -o BatchMode=yes \
             "$DEPLOY_USER@$DEPLOY_HOST" \
-            "install -d -m 755 '$deploy_dir'"
+            "install -d -m 755 '$deploy_dir' '$simulator_dir'"
           rsync --archive --compress --delete \
             --exclude='.git/' \
             --exclude='.env*' \
             -e "ssh -p $deploy_port -i $HOME/.ssh/id_ed25519 -o BatchMode=yes" \
+            ./plant-simulator/ "$DEPLOY_USER@$DEPLOY_HOST:$simulator_dir/"
+          rsync --archive --compress --delete \
+            --exclude='.git/' \
+            --exclude='.env*' \
+            --exclude='plant-simulator/' \
+            -e "ssh -p $deploy_port -i $HOME/.ssh/id_ed25519 -o BatchMode=yes" \
             ./ "$DEPLOY_USER@$DEPLOY_HOST:$deploy_dir/"
+
+      - name: Deploy independent Plant Simulator
+        if: steps.preflight.outputs.enabled == 'true'
+        shell: bash
+        run: |
+          deploy_port="${DEPLOY_PORT:-22}"
+          deploy_dir="${DEPLOY_APP_DIR:-/srv/plc/app}"
+          ssh -p "$deploy_port" \
+            -i "$HOME/.ssh/id_ed25519" \
+            -o BatchMode=yes \
+            "$DEPLOY_USER@$DEPLOY_HOST" \
+            "cd '$deploy_dir' && bash scripts/deploy-plant-simulator.sh /srv/plant-simulator/app"
 
       - name: Deploy verified main
         if: steps.preflight.outputs.enabled == 'true'
