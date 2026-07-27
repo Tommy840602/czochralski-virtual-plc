@@ -35,7 +35,9 @@ services:
     mem_limit: 640m
     restart: unless-stopped
     networks:
-      - industrial
+      industrial:
+        aliases:
+          - plc-backend
 
   # 僅作為部署時的前端 artifact image，不常駐執行。
   frontend:

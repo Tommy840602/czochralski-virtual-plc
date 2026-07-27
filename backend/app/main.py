@@ -9,6 +9,7 @@ from app.api.routes import (
     auth,
     catalog,
     control,
+    dcs_integration,
     earlywarning,
     plc_runtime,
     precursor,
@@ -49,6 +50,9 @@ app.add_middleware(
 
 # 登入端點本身不需授權
 app.include_router(auth.router, prefix="/api")
+
+# 僅由 cz-industrial Docker 網路上的 DCS adapter 直連；nginx 不代理 /internal。
+app.include_router(dcs_integration.router, prefix="/internal")
 
 # 其餘資料端點一律需要有效 token
 for router in (
