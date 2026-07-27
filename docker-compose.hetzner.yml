@@ -12,6 +12,7 @@ services:
   backend:
     build: ./backend
     environment:
+      PLC_ENVIRONMENT: production
       PLC_DATA_ROOT: gs://ingot/
       GOOGLE_APPLICATION_CREDENTIALS: /gcloud/sa-key.json
       # 勿設 PLC_GCS_PROJECT：gcsfs 2026.7 設了會轉匿名存取被 403（同 SPC 註解）

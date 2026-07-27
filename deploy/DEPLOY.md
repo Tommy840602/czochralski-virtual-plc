@@ -72,7 +72,7 @@ docker compose --env-file .env.prod -f docker-compose.prod.yml up -d --build
 
 ```bash
 # 後端健康（容器內）
-docker exec plc_frontend wget -qO- http://backend:8000/api/health
+docker exec plc_frontend wget -qO- http://backend:8000/api/readyz
 
 # 對外
 curl -I https://plc.tommy-huang.dev        # 應 200，Caddy 已簽 TLS

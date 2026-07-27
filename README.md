@@ -28,7 +28,8 @@
 - **可分層替換的架構**：資料來源（本機檔案 / GCS）透過 repository 抽象一鍵切換，
   service 與 API 不動。
 - **已上線**：Docker 化部署於 Hetzner，與另一專案共存於共享 VM、共用 GCS 資料源，
-  主機 nginx + 自動 TLS。
+  主機 nginx + 自動 TLS。公開 `/api/livez`、`/api/readyz` 僅回低敏感度狀態；
+  含 GCS provider/root 的 `/api/health` 必須登入。
 
 ---
 
@@ -117,6 +118,7 @@ npm install && npm run dev
 - 後端容器監聽 `127.0.0.1:8000`，讀 `gs://`（fsspec + SA 金鑰）
 - 主機 nginx 托管前端 dist + 反代 `/api`，certbot 自動 TLS
 - 資源隔離（`mem_limit`），兩專案互不干擾
+- `PLC_ENVIRONMENT=production` 啟動前拒絕預設帳號、短密碼、弱簽章金鑰與萬用 CORS
 
 完整步驟見 [`deploy/DEPLOY.md`](deploy/DEPLOY.md)。
 

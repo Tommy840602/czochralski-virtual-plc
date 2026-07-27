@@ -1,5 +1,6 @@
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from app.api.deps import get_repository, require_user
 from app.api.routes import (
@@ -47,11 +48,13 @@ for router in (
     app.include_router(router, prefix="/api", dependencies=[Depends(require_user)])
 
 
-@app.get("/api/health")
-def health():
+def _health_payload() -> dict:
     try:
         storage = get_repository().storage_status()
-        return {"status": "ok", **storage}
+        return {
+            **storage,
+            "status": "ok" if storage.get("rawdataExists") else "degraded",
+        }
     except Exception as exc:
         # API 仍活著，但資料來源尚未授權/設定完成；讓 readiness 能辨識此狀態。
         return {
@@ -61,3 +64,30 @@ def health():
             "rawdataExists": False,
             "storageError": type(exc).__name__,
         }
+
+
+@app.get("/api/livez")
+def livez():
+    """Process liveness only; never touches GCS."""
+    return JSONResponse({"status": "ok"}, headers={"Cache-Control": "no-store"})
+
+
+@app.get("/api/readyz")
+def readyz():
+    """Public readiness with no bucket, path, credential or exception details."""
+    payload = _health_payload()
+    public = {
+        "status": payload["status"],
+        "checks": {"storage": bool(payload.get("rawdataExists"))},
+    }
+    return JSONResponse(
+        public,
+        status_code=200 if payload["status"] == "ok" else 503,
+        headers={"Cache-Control": "no-store"},
+    )
+
+
+@app.get("/api/health", dependencies=[Depends(require_user)])
+def health():
+    """Authenticated detailed diagnostics for operators."""
+    return JSONResponse(_health_payload(), headers={"Cache-Control": "no-store"})

@@ -10,6 +10,7 @@ services:
   backend:
     build: ./backend
     environment:
+      PLC_ENVIRONMENT: production
       PLC_DATA_ROOT: /data
       PLC_AUTH_USERNAME: ${PLC_AUTH_USERNAME:?set in .env.prod}
       PLC_AUTH_PASSWORD: ${PLC_AUTH_PASSWORD:?set in .env.prod}
