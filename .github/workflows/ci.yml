@@ -86,6 +86,9 @@ jobs:
             echo "enabled=true" >> "$GITHUB_OUTPUT"
           fi
 
+      - uses: actions/checkout@v4
+        if: steps.preflight.outputs.enabled == 'true'
+
       - name: Configure SSH
         if: steps.preflight.outputs.enabled == 'true'
         shell: bash
@@ -95,6 +98,23 @@ jobs:
           chmod 600 "$HOME/.ssh/id_ed25519"
           printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
           chmod 600 "$HOME/.ssh/known_hosts"
+
+      - name: Sync verified main
+        if: steps.preflight.outputs.enabled == 'true'
+        shell: bash
+        run: |
+          deploy_port="${DEPLOY_PORT:-22}"
+          deploy_dir="${DEPLOY_APP_DIR:-/srv/plc/app}"
+          ssh -p "$deploy_port" \
+            -i "$HOME/.ssh/id_ed25519" \
+            -o BatchMode=yes \
+            "$DEPLOY_USER@$DEPLOY_HOST" \
+            "install -d -m 755 '$deploy_dir'"
+          rsync --archive --compress --delete \
+            --exclude='.git/' \
+            --exclude='.env.hetzner' \
+            -e "ssh -p $deploy_port -i $HOME/.ssh/id_ed25519 -o BatchMode=yes" \
+            ./ "$DEPLOY_USER@$DEPLOY_HOST:$deploy_dir/"
 
       - name: Deploy verified main
         if: steps.preflight.outputs.enabled == 'true'
@@ -106,4 +126,4 @@ jobs:
             -i "$HOME/.ssh/id_ed25519" \
             -o BatchMode=yes \
             "$DEPLOY_USER@$DEPLOY_HOST" \
-            "cd '$deploy_dir' && git fetch origin main && git checkout main && git pull --ff-only origin main && bash scripts/deploy-hetzner.sh '$GITHUB_SHA'"
+            "cd '$deploy_dir' && bash scripts/deploy-hetzner.sh '$GITHUB_SHA'"

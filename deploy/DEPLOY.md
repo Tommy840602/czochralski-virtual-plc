@@ -105,8 +105,10 @@ validation；三者都成功才執行 production deploy。請在 GitHub 的
 | `HETZNER_PORT` | 選填，預設 `22` |
 | `HETZNER_APP_DIR` | 選填，預設 `/srv/plc/app` |
 
-VM 的專案根目錄需先準備 `.env.hetzner`，可由
-`deploy/.env.hetzner.example` 複製；Plant Simulator 必須先建立並加入
+GitHub Actions 會自動建立 `HETZNER_APP_DIR`（預設 `/srv/plc/app`），並將
+已通過 CI 的 `main` 工作目錄同步進去，不需要 VM 具備 GitHub repository
+存取權。同步會保留 VM 專案根目錄既有的 `.env.hetzner`；第一次部署前仍需
+由 `deploy/.env.hetzner.example` 複製並填妥。Plant Simulator 必須先建立並加入
 `cz-industrial` network。缺少 GitHub secrets 時 deploy job 會顯示 warning
 並安全跳過，不影響 CI。
 

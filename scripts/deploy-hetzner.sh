@@ -2,7 +2,7 @@
 set -euo pipefail
 
 release_sha="${1:-manual}"
-project_root="$(git rev-parse --show-toplevel)"
+project_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$project_root"
 
 env_file="${PLC_DEPLOY_ENV_FILE:-.env.hetzner}"
