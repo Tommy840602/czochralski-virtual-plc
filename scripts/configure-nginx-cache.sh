@@ -18,13 +18,27 @@ fi
 resolved_config="$(readlink -f "$site_config")"
 staged_config="$(mktemp)"
 backup_config="${resolved_config}.pre-cache-policy"
+dcs_allowed_ip="${PLC_DCS_ALLOWED_IP:-178.104.225.148}"
+
+if [[ ! "$dcs_allowed_ip" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]]; then
+  echo "PLC_DCS_ALLOWED_IP must be an IPv4 address" >&2
+  exit 1
+fi
 
 cleanup() {
   rm -f "$staged_config"
 }
 trap cleanup EXIT
 
-awk '
+awk -v dcs_allowed_ip="$dcs_allowed_ip" '
+  /^[[:space:]]*# BEGIN PLC DCS BRIDGE/ {
+    skipping = 1
+    next
+  }
+  /^[[:space:]]*# END PLC DCS BRIDGE/ {
+    skipping = 0
+    next
+  }
   /^[[:space:]]*# BEGIN PLC CACHE POLICY/ {
     skipping = 1
     next
@@ -37,6 +51,21 @@ awk '
     next
   }
   !inserted && /^[[:space:]]*location \/ \{/ {
+    print "    # BEGIN PLC DCS BRIDGE"
+    print "    # Read-only telemetry bridge restricted to the DCS production VM."
+    print "    location = /api/integration/dcs/v1/snapshot {"
+    print "        allow " dcs_allowed_ip ";"
+    print "        deny all;"
+    print "        proxy_pass http://127.0.0.1:8000/internal/dcs/v1/snapshot;"
+    print "        proxy_http_version 1.1;"
+    print "        proxy_set_header Host $host;"
+    print "        proxy_set_header X-Real-IP $remote_addr;"
+    print "        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;"
+    print "        proxy_set_header X-Forwarded-Proto $scheme;"
+    print "        proxy_read_timeout 10s;"
+    print "    }"
+    print "    # END PLC DCS BRIDGE"
+    print ""
     print "    # BEGIN PLC CACHE POLICY"
     print "    # index.html 每次重新驗證；hashed assets 可長期快取。"
     print "    location = /index.html {"
@@ -80,4 +109,4 @@ if ! nginx -t; then
 fi
 
 systemctl reload nginx
-echo "PLC nginx cache policy installed."
+echo "PLC nginx cache policy and DCS bridge installed."
