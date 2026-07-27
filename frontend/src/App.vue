@@ -68,7 +68,11 @@ function logout() {
 
       <div class="sidebar-foot">
         <span class="muted" style="font-size: 12px; display: flex; align-items: center; gap: 6px">
-          <span class="user-dot" /> {{ auth.username || '使用者' }}
+          <span class="user-dot" />
+          <span>
+            {{ auth.username || '使用者' }}
+            <small v-if="auth.role">{{ auth.role }}</small>
+          </span>
         </span>
         <div style="display: flex; gap: 6px">
           <button
@@ -204,5 +208,12 @@ function logout() {
   flex-shrink: 0;
   border-radius: 50%;
   background: var(--ok);
+}
+
+.sidebar-foot .muted small {
+  display: block;
+  margin-top: 2px;
+  color: var(--text-faint);
+  font: 9px ui-monospace, monospace;
 }
 </style>

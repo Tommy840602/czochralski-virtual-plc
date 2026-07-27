@@ -99,3 +99,46 @@ def test_production_rejects_default_or_weak_credentials():
         Settings(_env_file=None, **{**base, "auth_secret": "short"})
     with pytest.raises(ValueError, match="CORS"):
         Settings(_env_file=None, **{**base, "cors_origins": ["*"]})
+
+
+@pytest.mark.parametrize(
+    ("username_attr", "role", "permission"),
+    [
+        ("auth_username", "Operator", "plc:operate"),
+        ("auth_engineer_username", "Engineer", "plc:reset"),
+        ("auth_lead_username", "Lead", "access:manage"),
+    ],
+)
+def test_login_issues_role_bound_identity(username_attr, role, permission):
+    client = TestClient(app)
+    settings = get_settings()
+    response = client.post(
+        "/api/auth/login",
+        json={
+            "username": getattr(settings, username_attr),
+            "password": settings.auth_password,
+        },
+    )
+
+    assert response.status_code == 200
+    session = response.json()
+    assert session["role"] == role
+    assert permission in session["permissions"]
+
+    me = client.get(
+        "/api/auth/me",
+        headers={"Authorization": f"Bearer {session['token']}"},
+    )
+    assert me.status_code == 200
+    assert me.json()["username"] == getattr(settings, username_attr)
+    assert me.json()["role"] == role
+
+
+def test_operator_cannot_reset_plc_runtime():
+    client = TestClient(app)
+    headers = _headers(client)
+
+    response = client.post("/api/plc/commands/reset", headers=headers)
+
+    assert response.status_code == 403
+    assert "Operator" in response.json()["detail"]

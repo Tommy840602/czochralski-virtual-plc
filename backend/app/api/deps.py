@@ -4,7 +4,7 @@ from typing import Annotated
 from fastapi import Depends, Header, HTTPException
 
 from app.core.config import Settings, get_settings
-from app.core.security import verify_token
+from app.core.security import AuthenticatedUser, verify_token
 from app.repositories.parquet_repo import ParquetRepository
 from app.services.catalog_service import CatalogService
 from app.services.control_service import ControlService
@@ -18,8 +18,8 @@ from app.services.series_service import SeriesService
 SettingsDep = Annotated[Settings, Depends(get_settings)]
 
 
-def require_user(authorization: str | None = Header(default=None)) -> str:
-    """驗證 Bearer token，回傳 username。缺 token 或無效一律 401。"""
+def require_user(authorization: str | None = Header(default=None)) -> AuthenticatedUser:
+    """驗證 Bearer token，回傳身份與角色。缺 token 或無效一律 401。"""
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="未登入", headers={"WWW-Authenticate": "Bearer"})
     token = authorization.removeprefix("Bearer ").strip()
@@ -29,7 +29,7 @@ def require_user(authorization: str | None = Header(default=None)) -> str:
         raise HTTPException(status_code=401, detail=str(exc), headers={"WWW-Authenticate": "Bearer"})
 
 
-CurrentUser = Annotated[str, Depends(require_user)]
+CurrentUser = Annotated[AuthenticatedUser, Depends(require_user)]
 
 
 @lru_cache

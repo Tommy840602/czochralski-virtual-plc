@@ -34,6 +34,8 @@ Plant Simulator ⇄ Virtual PLC → DCS → Historian → SPC
 - `/plc` 操作頁提供 START / STOP / RESET、I/O image、聯鎖與 alarm 監看。
 - `/api/plc/status`、`/api/plc/tags`、`/api/plc/commands/{command}`
   皆受既有登入驗證保護。
+- 登入提供 `Operator / Engineer / Lead` 三種 PLC 身份；角色寫入 HMAC token。
+  Operator 可執行標準啟停，RESET 僅允許 Engineer 與 Lead。
 
 Plant Simulator 仍獨立維護於
 [`Tommy840602/czochralski-simulator`](https://github.com/Tommy840602/czochralski-simulator)；

@@ -1,15 +1,49 @@
 """極簡簽章 token，僅用標準庫（不引入 JWT 相依）。
 
-適用本機單人研究情境：帳密由設定/環境變數提供，登入後簽發 HMAC-SHA256 token，
-之後每個請求帶 `Authorization: Bearer <token>`。這不是企業級 IdP，但比明碼傳遞
-或無保護要好，且無外部相依、Docker 映像不變胖。
+帳密由設定/環境變數提供，登入後簽發包含角色的 HMAC-SHA256 token，之後每個請求
+帶 `Authorization: Bearer <token>`。這不是企業級 IdP，但能為展示環境提供可驗證
+的身份與最小 RBAC，且無外部相依。
 """
 
 import base64
+from dataclasses import dataclass
+from enum import StrEnum
 import hashlib
 import hmac
 import json
 import time
+
+
+class UserRole(StrEnum):
+    OPERATOR = "Operator"
+    ENGINEER = "Engineer"
+    LEAD = "Lead"
+
+
+ROLE_PERMISSIONS: dict[UserRole, tuple[str, ...]] = {
+    UserRole.OPERATOR: ("plc:read", "plc:operate"),
+    UserRole.ENGINEER: ("plc:read", "plc:operate", "plc:reset", "research:view"),
+    UserRole.LEAD: (
+        "plc:read",
+        "plc:operate",
+        "plc:reset",
+        "research:view",
+        "access:manage",
+    ),
+}
+
+
+@dataclass(frozen=True, slots=True)
+class AuthenticatedUser:
+    username: str
+    role: UserRole
+
+    @property
+    def permissions(self) -> tuple[str, ...]:
+        return ROLE_PERMISSIONS[self.role]
+
+    def can(self, permission: str) -> bool:
+        return permission in self.permissions
 
 
 def _b64e(raw: bytes) -> str:
@@ -20,16 +54,23 @@ def _b64d(text: str) -> bytes:
     return base64.urlsafe_b64decode(text + "=" * (-len(text) % 4))
 
 
-def create_token(username: str, secret: str, ttl_seconds: int) -> tuple[str, int]:
+def create_token(
+    username: str,
+    secret: str,
+    ttl_seconds: int,
+    role: UserRole = UserRole.OPERATOR,
+) -> tuple[str, int]:
     """回傳 (token, expiresAtEpoch)。"""
     exp = int(time.time()) + ttl_seconds
-    body = _b64e(json.dumps({"sub": username, "exp": exp}).encode())
+    body = _b64e(
+        json.dumps({"sub": username, "role": role.value, "exp": exp}).encode()
+    )
     sig = _b64e(hmac.new(secret.encode(), body.encode(), hashlib.sha256).digest())
     return f"{body}.{sig}", exp
 
 
-def verify_token(token: str, secret: str) -> str:
-    """驗簽 + 檢查未過期，回傳 username；失敗則丟 ValueError。"""
+def verify_token(token: str, secret: str) -> AuthenticatedUser:
+    """驗簽 + 檢查未過期，回傳已驗證身份；失敗則丟 ValueError。"""
     try:
         body, sig = token.split(".", 1)
     except ValueError:
@@ -42,7 +83,12 @@ def verify_token(token: str, secret: str) -> str:
     payload = json.loads(_b64d(body))
     if payload.get("exp", 0) < time.time():
         raise ValueError("token 已過期")
-    return payload["sub"]
+    try:
+        role = UserRole(payload.get("role", UserRole.OPERATOR.value))
+        username = str(payload["sub"])
+    except (KeyError, TypeError, ValueError) as exc:
+        raise ValueError("token 身份資料錯誤") from exc
+    return AuthenticatedUser(username=username, role=role)
 
 
 def check_credentials(username: str, password: str, expected_user: str, expected_pw: str) -> bool:

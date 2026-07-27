@@ -150,6 +150,8 @@ jobs:
           }
           {
             dotenv_line PLC_AUTH_USERNAME "$PLC_AUTH_USERNAME"
+            printf 'PLC_AUTH_ENGINEER_USERNAME=plc.engineer\n'
+            printf 'PLC_AUTH_LEAD_USERNAME=plc.lead\n'
             dotenv_line PLC_AUTH_PASSWORD "$PLC_AUTH_PASSWORD"
             dotenv_line PLC_AUTH_SECRET "$PLC_AUTH_SECRET"
             printf 'PLC_INGOT_CACHE_SIZE=16\n'

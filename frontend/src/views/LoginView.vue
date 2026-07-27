@@ -9,12 +9,27 @@ const router = useRouter()
 const route = useRoute()
 
 const localDemoMode = import.meta.env.DEV
-const operatorAccount = {
-  username: localDemoMode ? 'admin' : 'plc.operator',
-  department: 'PLC',
-  role: 'Operator',
-  access: 'Sequence、Interlock、Actuator 與製程模擬操作',
-}
+const demoAccounts = [
+  {
+    username: localDemoMode ? 'admin' : 'plc.operator',
+    department: 'PLC',
+    role: 'Operator',
+    access: '製程監看、Sequence 啟停與標準操作',
+  },
+  {
+    username: 'plc.engineer',
+    department: 'PLC',
+    role: 'Engineer',
+    access: '控制分析、聯鎖診斷與 Runtime RESET',
+  },
+  {
+    username: 'plc.lead',
+    department: 'PLC',
+    role: 'Lead',
+    access: '完整 PLC 管理、工程與權限治理',
+  },
+]
+const defaultAccount = demoAccounts[0]
 const disclosureItems = [
   '本專案為個人面試展示用途，所有爐子模具圖、設備示意圖與熱場模擬圖皆由 AI 生成或基於模擬情境自行設計，並非取自任何公司、客戶、供應商或第三方之內部圖面、實機照片、工程文件或專有設計資料。',
   '展示中之分析報告與技術說明為 AI 輔助產生之模擬內容，未引用、改寫、揭露或還原任何內部技術文件、SOP、製程規範、設備手冊或商業資料。所有製程參數、感測數值、爐台狀態、警報事件、品質數據與報表內容皆為亂數生成或模擬資料。',
@@ -23,14 +38,14 @@ const disclosureItems = [
   '本專案不具備實際生產控制用途，亦不應視為可直接導入現場之正式工控系統、MES、SCADA、EAP 或品質管理系統。',
 ]
 
-const username = ref(operatorAccount.username)
+const username = ref(defaultAccount.username)
 const password = ref(localDemoMode ? 'admin0000' : '')
 const showPassword = ref(false)
 const error = ref('')
 const loading = ref(false)
 
-function selectOperator() {
-  username.value = operatorAccount.username
+function selectAccount(account) {
+  username.value = account.username
   if (!localDemoMode) password.value = ''
   error.value = ''
 }
@@ -82,7 +97,7 @@ async function submit() {
 
       <footer>
         <i /> FASTAPI AUTH · HMAC TOKEN
-        <span>SINGLE OPERATOR POLICY v1</span>
+        <span>PLC RBAC POLICY v1</span>
       </footer>
     </section>
 
@@ -94,7 +109,7 @@ async function submit() {
 
         <form class="auth-form" @submit.prevent="submit">
           <div class="auth-title">
-            <small>SECURE OPERATOR SIGN IN</small>
+            <small>SECURE PLC SIGN IN</small>
             <h1>登入 CZ Virtual PLC</h1>
             <p>請使用核准的 PLC 操作身份進入設備控制與模擬功能。</p>
           </div>
@@ -108,12 +123,21 @@ async function submit() {
               <span>{{ localDemoMode ? 'LOCAL DEMO' : 'PROTECTED CREDENTIAL' }}</span>
             </div>
 
-            <button class="operator-card active" type="button" @click="selectOperator">
-              <span>{{ operatorAccount.department }}</span>
-              <b>{{ operatorAccount.role }}</b>
-              <code>{{ operatorAccount.username }}</code>
-              <small>{{ operatorAccount.access }}</small>
-            </button>
+            <div class="demo-role-grid">
+              <button
+                v-for="account in demoAccounts"
+                :key="account.username"
+                class="role-card"
+                :class="{ active: username === account.username }"
+                type="button"
+                @click="selectAccount(account)"
+              >
+                <span>{{ account.department }}</span>
+                <b>{{ account.role }}</b>
+                <code>{{ account.username }}</code>
+                <small>{{ account.access }}</small>
+              </button>
+            </div>
           </div>
 
           <label>
@@ -405,12 +429,18 @@ async function submit() {
   white-space: nowrap;
 }
 
-.operator-card {
+.demo-role-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+  margin-top: 12px;
+}
+
+.role-card {
   width: 100%;
   display: grid;
   grid-template-columns: auto 1fr;
   gap: 3px 9px;
-  margin-top: 12px;
   padding: 10px;
   text-align: left;
   border: 1px solid #29443e;
@@ -419,18 +449,18 @@ async function submit() {
   cursor: pointer;
 }
 
-.operator-card:hover {
+.role-card:hover {
   border-color: #3b6b5e;
   background: #102820;
 }
 
-.operator-card.active {
+.role-card.active {
   border-color: #3fb6ad;
   background: #102a2a;
   box-shadow: inset 3px 0 #3fb6ad;
 }
 
-.operator-card > span {
+.role-card > span {
   grid-row: 1 / 3;
   display: grid;
   place-items: center;
@@ -439,17 +469,17 @@ async function submit() {
   font: 700 9px ui-monospace, monospace;
 }
 
-.operator-card b {
+.role-card b {
   color: #f0f4f3;
   font-size: 10px;
 }
 
-.operator-card code {
+.role-card code {
   color: #9bcabb;
   font: 8px ui-monospace, monospace;
 }
 
-.operator-card small {
+.role-card small {
   grid-column: 1 / -1;
   margin-top: 3px;
   color: #68817a;
@@ -594,6 +624,10 @@ async function submit() {
   .demo-access-heading {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .demo-role-grid {
+    grid-template-columns: 1fr;
   }
 
   .project-disclosure li {

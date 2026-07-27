@@ -106,6 +106,8 @@ validation；三者都成功才執行 production deploy。請在 GitHub 的
 | `HETZNER_APP_DIR` | 選填，預設 `/srv/plc/app` |
 | `SIMULATOR_REPO_SSH_KEY` | `czochralski-simulator` private repo 的唯讀 deploy key |
 | `PLC_AUTH_USERNAME` | Production 登入帳號，不可使用 `admin` |
+| `PLC_AUTH_ENGINEER_USERNAME` | Engineer 登入帳號，預設 `plc.engineer` |
+| `PLC_AUTH_LEAD_USERNAME` | Lead 登入帳號，預設 `plc.lead` |
 | `PLC_AUTH_PASSWORD` | Production 登入密碼，至少 12 字元 |
 | `PLC_AUTH_SECRET` | Token 簽章金鑰，至少 32 字元的隨機值 |
 

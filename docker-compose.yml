@@ -7,6 +7,8 @@ services:
       PLC_GCS_PROJECT: ${PLC_GCS_PROJECT:-}
       # 登入設定（於 .env 覆寫；未設則用程式預設 admin / admin0000）
       PLC_AUTH_USERNAME: ${PLC_AUTH_USERNAME:-admin}
+      PLC_AUTH_ENGINEER_USERNAME: ${PLC_AUTH_ENGINEER_USERNAME:-plc.engineer}
+      PLC_AUTH_LEAD_USERNAME: ${PLC_AUTH_LEAD_USERNAME:-plc.lead}
       PLC_AUTH_PASSWORD: ${PLC_AUTH_PASSWORD:-admin0000}
       PLC_AUTH_SECRET: ${PLC_AUTH_SECRET:-dev-secret-change-me-please-use-32+chars}
       # Virtual PLC 與獨立 Plant Simulator 的通訊設定。

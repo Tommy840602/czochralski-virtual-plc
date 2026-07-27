@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException
 
+from app.api.deps import CurrentUser
 from app.plc.deps import get_plc_runtime
 from app.plc.models import PlcCommand
 from app.plc.tag_contract import tag_contract
@@ -18,7 +19,13 @@ async def tags():
 
 
 @router.post("/commands/{command}")
-async def command(command: PlcCommand):
+async def command(command: PlcCommand, user: CurrentUser):
+    permission = "plc:reset" if command is PlcCommand.RESET else "plc:operate"
+    if not user.can(permission):
+        raise HTTPException(
+            status_code=403,
+            detail=f"{user.role.value} 無權執行 {command.value.upper()}",
+        )
     try:
         return (await get_plc_runtime().command(command)).to_dict()
     except ValueError as exc:

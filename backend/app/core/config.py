@@ -26,8 +26,10 @@ class Settings(BaseSettings):
     gcs_project: str | None = None
     cors_origins: list[str] = ["http://localhost:5173", "http://127.0.0.1:5173"]
 
-    # 登入（本機單人研究用；正式部署請以環境變數覆寫）
+    # 展示環境 RBAC：三個角色共用受保護密碼，身份與權限寫入簽章 token。
     auth_username: str = DEFAULT_AUTH_USERNAME
+    auth_engineer_username: str = "plc.engineer"
+    auth_lead_username: str = "plc.lead"
     auth_password: str = DEFAULT_AUTH_PASSWORD
     auth_secret: str = DEFAULT_AUTH_SECRET
     token_ttl_hours: int = 12
@@ -53,6 +55,13 @@ class Settings(BaseSettings):
         errors = []
         if self.auth_username == DEFAULT_AUTH_USERNAME:
             errors.append("PLC_AUTH_USERNAME 不得使用預設 admin")
+        identities = {
+            self.auth_username,
+            self.auth_engineer_username,
+            self.auth_lead_username,
+        }
+        if len(identities) != 3 or any(not item.strip() for item in identities):
+            errors.append("Operator、Engineer、Lead 登入帳號必須非空且不可重複")
         if self.auth_password == DEFAULT_AUTH_PASSWORD or len(self.auth_password) < 12:
             errors.append("PLC_AUTH_PASSWORD 必須是至少 12 字元的非預設密碼")
         if self.auth_secret == DEFAULT_AUTH_SECRET or len(self.auth_secret) < 32:
@@ -62,6 +71,14 @@ class Settings(BaseSettings):
         if errors:
             raise ValueError("production 安全設定不完整：" + "；".join(errors))
         return self
+
+    @property
+    def auth_identities(self) -> dict[str, str]:
+        return {
+            self.auth_username: "Operator",
+            self.auth_engineer_username: "Engineer",
+            self.auth_lead_username: "Lead",
+        }
 
     @property
     def storage_scheme(self) -> str:

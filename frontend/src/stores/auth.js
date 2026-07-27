@@ -8,6 +8,8 @@ export const useAuthStore = defineStore('auth', () => {
   const saved = JSON.parse(localStorage.getItem(KEY) || 'null')
   const token = ref(saved?.token || '')
   const username = ref(saved?.username || '')
+  const role = ref(saved?.role || '')
+  const permissions = ref(saved?.permissions || [])
   const expiresAt = ref(saved?.expiresAt || 0)
 
   const isAuthenticated = computed(
@@ -17,6 +19,8 @@ export const useAuthStore = defineStore('auth', () => {
   function setSession(data) {
     token.value = data.token
     username.value = data.username
+    role.value = data.role
+    permissions.value = data.permissions || []
     expiresAt.value = data.expiresAt
     localStorage.setItem(KEY, JSON.stringify(data))
   }
@@ -24,9 +28,23 @@ export const useAuthStore = defineStore('auth', () => {
   function logout() {
     token.value = ''
     username.value = ''
+    role.value = ''
+    permissions.value = []
     expiresAt.value = 0
     localStorage.removeItem(KEY)
   }
 
-  return { token, username, expiresAt, isAuthenticated, setSession, logout }
+  const can = (permission) => permissions.value.includes(permission)
+
+  return {
+    token,
+    username,
+    role,
+    permissions,
+    expiresAt,
+    isAuthenticated,
+    can,
+    setSession,
+    logout,
+  }
 })

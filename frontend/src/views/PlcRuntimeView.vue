@@ -1,7 +1,9 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { api } from '@/api/client'
+import { useAuthStore } from '@/stores/auth'
 
+const auth = useAuthStore()
 const snapshot = ref(null)
 const error = ref('')
 const commandBusy = ref(false)
@@ -95,7 +97,8 @@ onBeforeUnmount(() => window.clearInterval(pollTimer))
         </button>
         <button
           class="btn"
-          :disabled="commandBusy || !snapshot?.enabled"
+          :disabled="commandBusy || !snapshot?.enabled || !auth.can('plc:reset')"
+          :title="auth.can('plc:reset') ? 'Reset PLC runtime' : '需要 Engineer 或 Lead 權限'"
           @click="sendCommand('reset')"
         >
           RESET
