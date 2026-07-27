@@ -112,7 +112,7 @@ jobs:
             "install -d -m 755 '$deploy_dir'"
           rsync --archive --compress --delete \
             --exclude='.git/' \
-            --exclude='.env.hetzner' \
+            --exclude='.env*' \
             -e "ssh -p $deploy_port -i $HOME/.ssh/id_ed25519 -o BatchMode=yes" \
             ./ "$DEPLOY_USER@$DEPLOY_HOST:$deploy_dir/"
 
@@ -126,4 +126,4 @@ jobs:
             -i "$HOME/.ssh/id_ed25519" \
             -o BatchMode=yes \
             "$DEPLOY_USER@$DEPLOY_HOST" \
-            "cd '$deploy_dir' && bash scripts/deploy-hetzner.sh '$GITHUB_SHA'"
+            "cd '$deploy_dir' && bash scripts/bootstrap-hetzner-env.sh && bash scripts/deploy-hetzner.sh '$GITHUB_SHA'"
