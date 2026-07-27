@@ -12,6 +12,9 @@ frontend/.vite/
 
 # 環境設定（含機器/機密，勿提交；用 .env.example 為範本）
 .env
+.env.*
+!.env.example
+!deploy/.env.*.example
 
 # 資料不進 repo（232MB 逐點 parquet，存於專案外部）
 rawdata/

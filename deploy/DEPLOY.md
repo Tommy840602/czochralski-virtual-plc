@@ -31,6 +31,8 @@ ufw allow 22 && ufw allow 80 && ufw allow 443 && ufw --force enable
 
 # 共享反向代理網路（三專案共用，只建一次）
 docker network create web
+# Plant Simulator 與 PLC 共用的內部工控網路
+docker network create cz-industrial
 ```
 
 ## 一次性：起共享 Caddy 反向代理
@@ -83,9 +85,30 @@ curl -I https://plc.tommy-huang.dev        # 應 200，Caddy 已簽 TLS
 ## 更新版本
 
 ```bash
-cd /srv/plc/app && git pull
-docker compose --env-file .env.prod -f docker-compose.prod.yml up -d --build
+cd /srv/plc/app
+git pull --ff-only
+bash scripts/deploy-hetzner.sh
 ```
+
+## GitHub Actions 自動部署
+
+合併或 push 到 `main` 後，CI 會先完成 backend、frontend 與 deployment
+validation；三者都成功才執行 production deploy。請在 GitHub 的
+`production` environment 設定：
+
+| Secret | 內容 |
+| --- | --- |
+| `HETZNER_HOST` | VM IP 或 hostname |
+| `HETZNER_USER` | SSH 使用者；需可執行 Docker，並可免密 sudo 更新 `/var/www/plc-frontend` |
+| `HETZNER_SSH_KEY` | 對應 VM authorized key 的私鑰 |
+| `HETZNER_KNOWN_HOSTS` | `ssh-keyscan -H <host>` 的固定輸出 |
+| `HETZNER_PORT` | 選填，預設 `22` |
+| `HETZNER_APP_DIR` | 選填，預設 `/srv/plc/app` |
+
+VM 的專案根目錄需先準備 `.env.hetzner`，可由
+`deploy/.env.hetzner.example` 複製；Plant Simulator 必須先建立並加入
+`cz-industrial` network。缺少 GitHub secrets 時 deploy job 會顯示 warning
+並安全跳過，不影響 CI。
 
 ## 資源與共存
 

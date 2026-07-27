@@ -20,6 +20,11 @@ services:
       PLC_AUTH_PASSWORD: ${PLC_AUTH_PASSWORD:?}
       PLC_AUTH_SECRET: ${PLC_AUTH_SECRET:?}
       PLC_INGOT_CACHE_SIZE: ${PLC_INGOT_CACHE_SIZE:-16}
+      PLC_RUNTIME_ENABLED: ${PLC_RUNTIME_ENABLED:-true}
+      PLC_SCAN_INTERVAL_SECONDS: ${PLC_SCAN_INTERVAL_SECONDS:-0.2}
+      PLC_PLANT_OPCUA_ENDPOINT: ${PLC_PLANT_OPCUA_ENDPOINT:-opc.tcp://plant-simulator:4840/plant-simulator/server/}
+      PLC_PLANT_OPCUA_NAMESPACE: ${PLC_PLANT_OPCUA_NAMESPACE:-urn:tommy-huang:cz-plant-simulator}
+      PLC_PLANT_API_URL: ${PLC_PLANT_API_URL:-http://plant-simulator:8090}
     volumes:
       # 沿用 SPC 的唯讀 SA 金鑰
       - ${SA_KEY_PATH:-/home/tommy/spc-platform/deploy/hetzner/sa-key.json}:/gcloud/sa-key.json:ro
@@ -27,3 +32,16 @@ services:
       - "127.0.0.1:8000:8000"      # 只綁 localhost，由宿主機 nginx 反代
     mem_limit: 640m
     restart: unless-stopped
+    networks:
+      - industrial
+
+  # 僅作為部署時的前端 artifact image，不常駐執行。
+  frontend:
+    profiles: ["frontend-artifact"]
+    image: plc-frontend:deploy
+    build: ./frontend
+
+networks:
+  industrial:
+    external: true
+    name: cz-industrial

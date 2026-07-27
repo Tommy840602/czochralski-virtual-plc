@@ -38,6 +38,7 @@ jobs:
       - run: npm run build
 
   deployment:
+    name: deployment validation
     runs-on: ubuntu-latest
     env:
       PLC_AUTH_USERNAME: ci.operator
@@ -56,3 +57,53 @@ jobs:
           docker run --rm
           -v "$PWD/deploy/hetzner/plc.conf:/etc/nginx/conf.d/default.conf:ro"
           nginx:1.27-alpine nginx -t
+
+  deploy:
+    name: deploy plc.tommy-huang.dev
+    needs: [backend, frontend, deployment]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    concurrency:
+      group: plc-production
+      cancel-in-progress: false
+    env:
+      DEPLOY_HOST: ${{ secrets.HETZNER_HOST }}
+      DEPLOY_USER: ${{ secrets.HETZNER_USER }}
+      DEPLOY_PORT: ${{ secrets.HETZNER_PORT }}
+      DEPLOY_SSH_KEY: ${{ secrets.HETZNER_SSH_KEY }}
+      DEPLOY_KNOWN_HOSTS: ${{ secrets.HETZNER_KNOWN_HOSTS }}
+      DEPLOY_APP_DIR: ${{ secrets.HETZNER_APP_DIR }}
+    steps:
+      - name: Check deployment configuration
+        id: preflight
+        shell: bash
+        run: |
+          if [[ -z "$DEPLOY_HOST" || -z "$DEPLOY_USER" || -z "$DEPLOY_SSH_KEY" || -z "$DEPLOY_KNOWN_HOSTS" ]]; then
+            echo "::warning::Hetzner deployment skipped: configure HETZNER_HOST, HETZNER_USER, HETZNER_SSH_KEY and HETZNER_KNOWN_HOSTS in the production environment."
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Configure SSH
+        if: steps.preflight.outputs.enabled == 'true'
+        shell: bash
+        run: |
+          install -d -m 700 "$HOME/.ssh"
+          printf '%s\n' "$DEPLOY_SSH_KEY" > "$HOME/.ssh/id_ed25519"
+          chmod 600 "$HOME/.ssh/id_ed25519"
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/known_hosts"
+
+      - name: Deploy verified main
+        if: steps.preflight.outputs.enabled == 'true'
+        shell: bash
+        run: |
+          deploy_port="${DEPLOY_PORT:-22}"
+          deploy_dir="${DEPLOY_APP_DIR:-/srv/plc/app}"
+          ssh -p "$deploy_port" \
+            -i "$HOME/.ssh/id_ed25519" \
+            -o BatchMode=yes \
+            "$DEPLOY_USER@$DEPLOY_HOST" \
+            "cd '$deploy_dir' && git fetch origin main && git checkout main && git pull --ff-only origin main && bash scripts/deploy-hetzner.sh '$GITHUB_SHA'"

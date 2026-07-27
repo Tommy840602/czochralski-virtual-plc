@@ -174,6 +174,10 @@ Simulator 會建立 `cz-industrial` network；PLC backend 透過
 
 完整步驟見 [`deploy/DEPLOY.md`](deploy/DEPLOY.md)。
 
+Push/merge 到 `main` 會先跑完整 CI；CI 全部成功且 GitHub `production`
+environment 已設定 Hetzner SSH secrets 時，才會自動更新 VM。部署腳本會
+更新 backend、前端靜態檔並執行 liveness check。
+
 ---
 
 ## 📁 專案結構
