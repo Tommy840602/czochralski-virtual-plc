@@ -71,5 +71,5 @@ jobs:
             -i "$HOME/.ssh/id_ed25519" \
             -o BatchMode=yes \
             "$DEPLOY_USER@$DEPLOY_HOST" \
-            "ssh-keygen -lf '$HOME/.ssh/authorized_keys'" |
+            'ssh-keygen -lf "$HOME/.ssh/authorized_keys"' |
             grep -F "$fingerprint"
