@@ -34,17 +34,13 @@ async function request(path, { method = 'GET', params, body } = {}) {
       body: body ? JSON.stringify(body) : undefined,
     })
   } catch {
-    // fetch 只有網路層失敗才會 throw（後端未啟動、埠不通等）
-    throw new Error('無法連線到後端，請確認後端服務已啟動（埠 8000）')
+    // 正式站透過同網域 /api 反代；瀏覽器不應直接連容器的 8000 埠。
+    throw new Error('無法連線到 PLC API，請檢查網路後重試')
   }
 
   if (res.status === 401) {
     _onUnauthorized()
     throw new Error('登入已失效，請重新登入')
-  }
-  // 5xx（含 dev proxy 在後端未啟動時回的 500）多半是後端沒起或崩了
-  if (res.status >= 500) {
-    throw new Error('後端無回應（請確認後端服務已啟動，埠 8000）')
   }
   if (!res.ok) {
     let detail = res.statusText
@@ -53,7 +49,10 @@ async function request(path, { method = 'GET', params, body } = {}) {
     } catch {
       /* 非 JSON 錯誤照原樣 */
     }
-    throw new Error(detail)
+    if (res.status >= 500) {
+      throw new Error(detail || `PLC API 暫時無法處理請求（HTTP ${res.status}）`)
+    }
+    throw new Error(detail || `PLC 指令失敗（HTTP ${res.status}）`)
   }
   return res.json()
 }

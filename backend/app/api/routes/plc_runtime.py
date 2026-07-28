@@ -30,3 +30,5 @@ async def command(command: PlcCommand, user: CurrentUser):
         return (await get_plc_runtime().command(command)).to_dict()
     except ValueError as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
+    except ConnectionError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc

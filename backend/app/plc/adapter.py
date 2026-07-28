@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import json
 from typing import Protocol
+from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 from asyncua import Client, ua
@@ -93,8 +94,28 @@ class OpcUaPlantAdapter:
                 headers={"Content-Type": "application/json"},
                 method="POST",
             )
-            with urlopen(request, timeout=self.request_timeout_seconds) as response:
-                if response.status >= 300:
-                    raise ConnectionError(f"Plant command failed with HTTP {response.status}")
+            try:
+                with urlopen(
+                    request,
+                    timeout=self.request_timeout_seconds,
+                ) as response:
+                    if response.status >= 300:
+                        raise ConnectionError(
+                            f"Plant command failed with HTTP {response.status}"
+                        )
+            except HTTPError as exc:
+                detail = f"Plant command rejected with HTTP {exc.code}"
+                try:
+                    payload = json.loads(exc.read().decode())
+                    detail = str(payload.get("detail") or detail)
+                except (UnicodeDecodeError, json.JSONDecodeError, AttributeError):
+                    pass
+                if 400 <= exc.code < 500:
+                    raise ValueError(detail) from exc
+                raise ConnectionError(detail) from exc
+            except URLError as exc:
+                raise ConnectionError(
+                    "Plant Simulator command API is unavailable"
+                ) from exc
 
         await asyncio.to_thread(send)

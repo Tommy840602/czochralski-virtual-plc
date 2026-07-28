@@ -36,6 +36,15 @@ const stateClass = computed(() => {
   return 'dim'
 })
 
+const resetRequired = computed(() => {
+  const inputs = snapshot.value?.inputs
+  if (!inputs) return false
+  return (
+    ['EMERGENCY_STOP', 'FAULT', 'COMPLETE'].includes(inputs.plant_phase) ||
+    (inputs.cycle_outcome === 'ABORTED' && inputs.plant_phase !== 'IDLE')
+  )
+})
+
 function formatValue(value) {
   if (typeof value === 'number') {
     return value.toFixed(3)
@@ -83,7 +92,13 @@ onBeforeUnmount(() => window.clearInterval(pollTimer))
       <div class="controls runtime-controls">
         <button
           class="btn primary"
-          :disabled="commandBusy || !snapshot?.enabled || snapshot?.state === 'RUNNING'"
+          :disabled="
+            commandBusy ||
+            !snapshot?.enabled ||
+            snapshot?.state === 'RUNNING' ||
+            resetRequired
+          "
+          :title="resetRequired ? 'Plant Simulator 必須先由 Engineer 或 Lead 執行 RESET' : 'Start PLC runtime'"
           @click="sendCommand('start')"
         >
           START
@@ -107,6 +122,10 @@ onBeforeUnmount(() => window.clearInterval(pollTimer))
     </div>
 
     <div v-if="error" class="runtime-error">⚠ {{ error }}</div>
+    <div v-else-if="resetRequired" class="runtime-warning">
+      ⚠ Plant Simulator 已鎖定於 {{ snapshot.inputs.plant_phase }}；請由 Engineer 或 Lead
+      執行 RESET 後再 START。
+    </div>
 
     <div v-if="!snapshot" class="loading">讀取 PLC Runtime…</div>
 
@@ -233,6 +252,7 @@ onBeforeUnmount(() => window.clearInterval(pollTimer))
   letter-spacing: 0.5px;
 }
 .runtime-error,
+.runtime-warning,
 .alarm {
   color: var(--danger);
   border: 1px solid color-mix(in srgb, var(--danger) 35%, transparent);
@@ -241,6 +261,12 @@ onBeforeUnmount(() => window.clearInterval(pollTimer))
   padding: 8px 10px;
 }
 .runtime-error {
+  margin-bottom: 14px;
+}
+.runtime-warning {
+  color: var(--warn);
+  border-color: color-mix(in srgb, var(--warn) 35%, transparent);
+  background: color-mix(in srgb, var(--warn) 10%, transparent);
   margin-bottom: 14px;
 }
 .interlock-list,

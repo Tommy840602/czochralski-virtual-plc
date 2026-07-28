@@ -173,6 +173,17 @@ jobs:
         run: |
           deploy_port="${DEPLOY_PORT:-22}"
           deploy_dir="${DEPLOY_APP_DIR:-/srv/plc/app}"
+          # Stop the old PLC before replacing Plant. Its shutdown fail-safe may
+          # assert E-STOP, which must target the old Plant instead of latching
+          # the freshly deployed simulator in EMERGENCY_STOP.
+          ssh -p "$deploy_port" \
+            -i "$HOME/.ssh/id_ed25519" \
+            -o BatchMode=yes \
+            "$DEPLOY_USER@$DEPLOY_HOST" \
+            "cd '$deploy_dir' \
+              && if test -f .env.hetzner; then \
+                   docker compose --env-file .env.hetzner -f docker-compose.hetzner.yml stop backend; \
+                 fi"
           ssh -p "$deploy_port" \
             -i "$HOME/.ssh/id_ed25519" \
             -o BatchMode=yes \
