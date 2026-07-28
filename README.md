@@ -163,6 +163,11 @@ Simulator 會建立 `cz-industrial` network；PLC backend 透過
 聯鎖採 stop-dominant：任何 blocking interlock 跳脫時，PLC 會清除 run request、
 寫入安全輸出；條件恢復後也不會自動重啟，必須由操作者再次下達 START。
 
+PLC 同時讀取 Plant 的 `Status.CycleId`、`Status.IngotId` 與
+`Status.CycleOutcome`，並透過 `cz.plc.dcs.telemetry.v2` 原樣送往 DCS。
+Plant 回報 `COMPLETED` 或 `ABORTED` 時，PLC 會清除 run request；DCS/SPC
+因此能以真實 cycle 身分區分正常完成與中止批次。
+
 ---
 
 ## ☁ 部署（Hetzner，與 SPC 共享 VM）

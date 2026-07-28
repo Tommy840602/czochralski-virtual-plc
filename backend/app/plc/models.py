@@ -39,6 +39,9 @@ class PlantInputImage:
     communication_online: bool = False
     plant_mode: str = "UNKNOWN"
     plant_phase: str = "UNKNOWN"
+    cycle_id: str = "NO_ACTIVE_CYCLE"
+    ingot_id: str = "NO_ACTIVE_INGOT"
+    cycle_outcome: str = "NONE"
     plant_sequence: int = 0
 
 

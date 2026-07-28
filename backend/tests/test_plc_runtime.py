@@ -49,6 +49,9 @@ def healthy_inputs(**overrides) -> PlantInputImage:
         "communication_online": True,
         "plant_mode": "RUNNING",
         "plant_phase": "BODY",
+        "cycle_id": "cycle-test-001",
+        "ingot_id": "CZ01-TEST-001",
+        "cycle_outcome": "IN_PROGRESS",
         "plant_sequence": 42,
     }
     values.update(overrides)
@@ -109,6 +112,23 @@ def test_bad_sensor_quality_trips_runtime_and_forces_safe_outputs():
     assert "Sensor quality is BAD" in snapshot.alarms
 
 
+def test_completed_plant_cycle_clears_run_request_and_reports_stopped():
+    adapter = FakePlantAdapter(
+        healthy_inputs(
+            plant_mode="STOPPED",
+            plant_phase="COMPLETE",
+            cycle_outcome="COMPLETED",
+        )
+    )
+    runtime = VirtualPlcRuntime(runtime_settings(), adapter)
+    runtime.requested_run = True
+
+    snapshot = asyncio.run(runtime.scan_once())
+
+    assert snapshot.requested_run is False
+    assert snapshot.state is PlcRuntimeState.STOPPED
+
+
 def test_start_is_rejected_when_safety_door_is_open():
     adapter = FakePlantAdapter(healthy_inputs(door_closed=False))
     runtime = VirtualPlcRuntime(runtime_settings(), adapter)
@@ -140,7 +160,7 @@ def test_tag_contract_has_unique_nodes_and_only_outputs_are_writable():
     contract = tag_contract()
     node_ids = [tag.node_id for tag in ALL_TAGS]
 
-    assert contract["version"] == "1.0.0"
+    assert contract["version"] == "2.0.0"
     assert len(node_ids) == len(set(node_ids))
     assert all(tag.writable for tag in OUTPUT_TAGS)
     assert all(not tag.writable for tag in ALL_TAGS if tag not in OUTPUT_TAGS)

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from app.plc.models import PlcRuntimeSnapshot, utc_now
 
-DCS_TELEMETRY_SCHEMA = "cz.plc.dcs.telemetry.v1"
+DCS_TELEMETRY_SCHEMA = "cz.plc.dcs.telemetry.v2"
 DCS_SOURCE = "CZ_VIRTUAL_PLC"
 # PLC control scan remains 200 ms. Only the cross-system monitoring cadence is 1 Hz.
 REALTIME_MONITORING_INTERVAL_MS = 1_000
@@ -48,7 +48,9 @@ def dcs_snapshot(snapshot: PlcRuntimeSnapshot) -> dict[str, object]:
         "argonFlowSp": 60.0,
         "chamberPressure": inputs.pressure_torr,
         "chamberPressureSp": 20.0,
-        "ingot": "CZ01-PLC-LIVE",
+        "cycleId": inputs.cycle_id,
+        "ingot": inputs.ingot_id,
+        "cycleOutcome": inputs.cycle_outcome,
         "event": inputs.plant_sequence % (2**31),
         "simulationSource": DCS_SOURCE,
         "simulationRandomized": False,

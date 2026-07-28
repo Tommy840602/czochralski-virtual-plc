@@ -37,6 +37,9 @@ def test_maps_authoritative_plc_image_to_dcs_contract():
             communication_online=True,
             plant_mode="RUNNING",
             plant_phase="BODY",
+            cycle_id="cycle-20260727-001",
+            ingot_id="CZ01-20260727-001",
+            cycle_outcome="IN_PROGRESS",
             plant_sequence=7,
         ),
         outputs=PlcOutputImage(
@@ -66,6 +69,9 @@ def test_maps_authoritative_plc_image_to_dcs_contract():
     assert telemetry["simulationSource"] == "CZ_VIRTUAL_PLC"
     assert telemetry["plcAuthoritative"] is True
     assert telemetry["plcInterlockPermit"] is True
+    assert telemetry["cycleId"] == "cycle-20260727-001"
+    assert telemetry["ingot"] == "CZ01-20260727-001"
+    assert telemetry["cycleOutcome"] == "IN_PROGRESS"
     assert telemetry["monitoringIntervalMs"] == REALTIME_MONITORING_INTERVAL_MS == 1_000
 
 

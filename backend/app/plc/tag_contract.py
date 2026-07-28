@@ -53,6 +53,16 @@ INPUT_TAGS: tuple[PlcTag, ...] = (
 STATUS_TAGS: tuple[PlcTag, ...] = (
     PlcTag("Status.Mode", "plant_mode", TagDirection.PLANT_STATUS, "String", None, False),
     PlcTag("Status.ProcessPhase", "plant_phase", TagDirection.PLANT_STATUS, "String", None, False),
+    PlcTag("Status.CycleId", "cycle_id", TagDirection.PLANT_STATUS, "String", None, False),
+    PlcTag("Status.IngotId", "ingot_id", TagDirection.PLANT_STATUS, "String", None, False),
+    PlcTag(
+        "Status.CycleOutcome",
+        "cycle_outcome",
+        TagDirection.PLANT_STATUS,
+        "String",
+        None,
+        False,
+    ),
     PlcTag(
         "Status.SensorQuality",
         "sensor_quality",
@@ -110,7 +120,7 @@ ALL_TAGS = INPUT_TAGS + STATUS_TAGS + OUTPUT_TAGS
 
 def tag_contract() -> dict[str, object]:
     return {
-        "version": "1.0.0",
+        "version": "2.0.0",
         "namespace": "urn:tommy-huang:cz-plant-simulator",
         "tags": [tag.to_dict() for tag in ALL_TAGS],
     }

@@ -86,6 +86,8 @@ class VirtualPlcRuntime:
                     await self.adapter.connect()
                 self.connected = True
                 self.inputs = await self.adapter.read_inputs()
+                if self.inputs.cycle_outcome in {"COMPLETED", "ABORTED"}:
+                    self.requested_run = False
                 interlocks = self._interlocks()
                 tripped = any(
                     item.blocking and not item.healthy for item in interlocks
@@ -157,7 +159,7 @@ class VirtualPlcRuntime:
             state = PlcRuntimeState.DISCONNECTED
         elif tripped:
             state = PlcRuntimeState.FAULT
-        elif self.requested_run:
+        elif self.requested_run and self.inputs.plant_mode == "RUNNING":
             state = PlcRuntimeState.RUNNING
         else:
             state = PlcRuntimeState.STOPPED
