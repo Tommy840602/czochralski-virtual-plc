@@ -11,6 +11,22 @@ permissions:
 jobs:
   backend:
     runs-on: ubuntu-latest
+    env:
+      PLC_TEST_DATABASE_URL: postgresql://plc:plc@127.0.0.1:5434/plc
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: plc
+          POSTGRES_USER: plc
+          POSTGRES_PASSWORD: plc
+        ports:
+          - 5434:5432
+        options: >-
+          --health-cmd "pg_isready -U plc -d plc"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
