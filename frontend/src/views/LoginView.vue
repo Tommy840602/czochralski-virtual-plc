@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { reactive, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { api } from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
@@ -43,6 +43,27 @@ const password = ref(localDemoMode ? 'admin0000' : '')
 const showPassword = ref(false)
 const error = ref('')
 const loading = ref(false)
+const mode = ref('login')
+const registrationComplete = ref(false)
+const registration = reactive({
+  name: '',
+  username: '',
+  email: '',
+  role: 'Operator',
+  password: '',
+  confirmPassword: '',
+})
+const roleOptions = [
+  { role: 'Operator', access: '製程監看、Sequence 啟停與標準操作' },
+  { role: 'Engineer', access: '控制分析、聯鎖診斷與 Runtime RESET' },
+  { role: 'Lead', access: '完整 PLC 管理、工程與權限治理' },
+]
+
+function setMode(value) {
+  mode.value = value
+  error.value = ''
+  registrationComplete.value = false
+}
 
 function selectAccount(account) {
   username.value = account.username
@@ -60,6 +81,30 @@ async function submit() {
     router.replace(route.query.redirect || '/plc')
   } catch (e) {
     error.value = e.message || '登入失敗'
+  } finally {
+    loading.value = false
+  }
+}
+
+async function submitRegistration() {
+  if (loading.value) return
+  error.value = ''
+  if (registration.password !== registration.confirmPassword) {
+    error.value = '兩次輸入的密碼不一致'
+    return
+  }
+  loading.value = true
+  try {
+    await api.register({
+      name: registration.name.trim(),
+      username: registration.username.trim(),
+      email: registration.email.trim(),
+      role: registration.role,
+      password: registration.password,
+    })
+    registrationComplete.value = true
+  } catch (e) {
+    error.value = e.message || '帳號申請失敗'
   } finally {
     loading.value = false
   }
@@ -103,11 +148,12 @@ async function submit() {
 
     <section class="auth-form-panel">
       <div class="auth-form-wrap">
-        <div class="auth-tabs" role="tablist" aria-label="PLC 登入">
-          <button class="active" type="button" role="tab" aria-selected="true">登入</button>
+        <div class="auth-tabs" role="tablist" aria-label="PLC 登入或申請帳號">
+          <button :class="{ active: mode === 'login' }" type="button" role="tab" @click="setMode('login')">登入</button>
+          <button :class="{ active: mode === 'register' }" type="button" role="tab" @click="setMode('register')">申請帳號</button>
         </div>
 
-        <form class="auth-form" @submit.prevent="submit">
+        <form v-if="mode === 'login'" class="auth-form" @submit.prevent="submit">
           <div class="auth-title">
             <small>SECURE PLC SIGN IN</small>
             <h1>登入 CZ Virtual PLC</h1>
@@ -178,6 +224,78 @@ async function submit() {
             <b>{{ localDemoMode ? 'LOCAL DEMO ONLY' : 'PROTECTED INTERVIEW DEMO' }}</b>
             <span>{{ localDemoMode ? '本機開發模式可自動填入測試帳密。' : '正式站不公開、不嵌入且不自動填入展示密碼。' }}</span>
           </div>
+        </form>
+
+        <form v-else class="auth-form" @submit.prevent="submitRegistration">
+          <div class="auth-title">
+            <small>ACCESS REQUEST</small>
+            <h1>申請 PLC 帳號</h1>
+            <p>申請送出後狀態為 PENDING，必須由既有 PLC Lead 核准才能登入。</p>
+          </div>
+
+          <div v-if="registrationComplete" class="registration-complete">
+            <span>✓</span>
+            <h2>申請已送出</h2>
+            <p>{{ registration.username }} 正在等待 PLC Lead 核准。</p>
+            <button class="auth-submit" type="button" @click="setMode('login')">
+              返回登入 <span>→</span>
+            </button>
+          </div>
+
+          <template v-else>
+            <div class="register-grid">
+              <label>
+                姓名
+                <input v-model="registration.name" autocomplete="name" required>
+              </label>
+              <label>
+                操作帳號
+                <input v-model="registration.username" autocomplete="username" placeholder="例如 plc.tommy" required>
+              </label>
+            </div>
+
+            <label>
+              信箱
+              <input v-model="registration.email" type="email" autocomplete="email" required>
+            </label>
+
+            <fieldset>
+              <legend>申請角色</legend>
+              <div class="application-role-grid">
+                <button
+                  v-for="item in roleOptions"
+                  :key="item.role"
+                  type="button"
+                  :class="{ active: registration.role === item.role }"
+                  @click="registration.role = item.role"
+                >
+                  <b>{{ item.role }}</b>
+                  <small>{{ item.access }}</small>
+                </button>
+              </div>
+            </fieldset>
+
+            <div class="register-grid">
+              <label>
+                密碼
+                <input v-model="registration.password" type="password" autocomplete="new-password" minlength="12" required>
+              </label>
+              <label>
+                確認密碼
+                <input v-model="registration.confirmPassword" type="password" autocomplete="new-password" minlength="12" required>
+              </label>
+            </div>
+            <p class="password-policy">12–72 碼，須包含英文大小寫、數字與符號。</p>
+
+            <p v-if="error" class="auth-message error">{{ error }}</p>
+            <button
+              class="auth-submit"
+              type="submit"
+              :disabled="loading || !registration.name || !registration.username || !registration.email || !registration.password"
+            >
+              {{ loading ? '送出中…' : '送出權限申請' }} <span>→</span>
+            </button>
+          </template>
         </form>
       </div>
     </section>
@@ -345,7 +463,7 @@ async function submit() {
 
 .auth-tabs {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: 1fr 1fr;
   margin-bottom: 14px;
   border-bottom: 1px solid #3c3c3c;
 }
@@ -356,6 +474,7 @@ async function submit() {
   color: #858585;
   padding: 12px;
   font-size: 12px;
+  cursor: pointer;
 }
 
 .auth-tabs button.active {
@@ -487,7 +606,8 @@ async function submit() {
   line-height: 1.4;
 }
 
-.auth-form > label {
+.auth-form > label,
+.register-grid label {
   display: block;
   margin: 0 0 13px;
   color: #a5a5a5;
@@ -503,6 +623,86 @@ async function submit() {
   padding: 10px 12px;
   outline: none;
   font-size: 12px;
+}
+
+.register-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+fieldset {
+  margin: 0 0 14px;
+  padding: 0;
+  border: 0;
+}
+
+legend {
+  margin-bottom: 7px;
+  color: #a5a5a5;
+  font-size: 10px;
+}
+
+.application-role-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.application-role-grid button {
+  min-height: 82px;
+  padding: 10px;
+  text-align: left;
+  border: 1px solid #3c3c3c;
+  background: #252526;
+  color: #d4d4d4;
+  cursor: pointer;
+}
+
+.application-role-grid button.active {
+  border-color: #3fb6ad;
+  background: #102a2a;
+  box-shadow: inset 3px 0 #3fb6ad;
+}
+
+.application-role-grid b,
+.application-role-grid small {
+  display: block;
+}
+
+.application-role-grid small {
+  margin-top: 7px;
+  color: #78918c;
+  font-size: 8px;
+  line-height: 1.4;
+}
+
+.password-policy {
+  margin: -4px 0 13px;
+  color: #78918c;
+  font-size: 9px;
+}
+
+.registration-complete {
+  padding: 26px 8px;
+  text-align: center;
+}
+
+.registration-complete > span {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 14px;
+  border: 1px solid #4ec9b0;
+  border-radius: 50%;
+  color: #4ec9b0;
+  font-size: 22px;
+}
+
+.registration-complete p {
+  margin-bottom: 20px;
+  color: #9bcabb;
 }
 
 .auth-form input:focus {
@@ -564,6 +764,12 @@ async function submit() {
   color: #f5b0a3;
 }
 
+.auth-message.success {
+  border-color: #4ec9b0;
+  background: #102820;
+  color: #a6e3d8;
+}
+
 .security-note {
   margin-top: 14px;
   padding: 10px 12px;
@@ -619,6 +825,11 @@ async function submit() {
 
   .auth-form {
     padding: 22px 18px;
+  }
+
+  .register-grid,
+  .application-role-grid {
+    grid-template-columns: 1fr;
   }
 
   .demo-access-heading {

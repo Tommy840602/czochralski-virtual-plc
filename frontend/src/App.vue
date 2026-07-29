@@ -14,6 +14,7 @@ const links = [
   { to: '/control', label: '控制調參', icon: '<line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/>' },
   { to: '/quality', label: '品質分析', icon: '<line x1="6" y1="20" x2="6" y2="15"/><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/>' },
   { to: '/risk', label: '運營風險', icon: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>' },
+  { to: '/access', label: '帳號申請', permission: 'access:manage', icon: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/>' },
 ]
 
 const route = useRoute()
@@ -41,15 +42,13 @@ function logout() {
         </div>
 
         <div class="brand-text">
-          <h1>
-            <span>CZ Virtual PLC</span>
-          </h1>
-          <span class="brand-subtitle">設備控制與製程研究平台</span>
+          <h1>CZ PLC</h1>
+          <span class="brand-subtitle">設備控制平台</span>
         </div>
       </div>
 
       <nav style="flex: 1">
-        <RouterLink v-for="l in links" :key="l.to" :to="l.to" class="nav-link">
+        <RouterLink v-for="l in links.filter((item) => !item.permission || auth.can(item.permission))" :key="l.to" :to="l.to" class="nav-link">
           <svg
             class="nav-icon"
             viewBox="0 0 24 24"

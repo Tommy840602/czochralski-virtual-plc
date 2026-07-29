@@ -1,7 +1,10 @@
 from fastapi.testclient import TestClient
+import psycopg
 import pytest
 
 from app.core.config import Settings, get_settings
+from app.core.security import UserRole
+from app.repositories.identity_store import IdentityStore, get_identity_store
 from app.main import app
 import app.main as main_module
 
@@ -38,6 +41,16 @@ def _headers(client):
             "username": settings.auth_username,
             "password": settings.auth_password,
         },
+    )
+    assert response.status_code == 200
+    return {"Authorization": f"Bearer {response.json()['token']}"}
+
+
+def _headers_for(client, username):
+    settings = get_settings()
+    response = client.post(
+        "/api/auth/login",
+        json={"username": username, "password": settings.auth_password},
     )
     assert response.status_code == 200
     return {"Authorization": f"Bearer {response.json()['token']}"}
@@ -142,3 +155,93 @@ def test_operator_cannot_reset_plc_runtime():
 
     assert response.status_code == 403
     assert "Operator" in response.json()["detail"]
+
+
+def test_account_application_requires_lead_approval_before_login():
+    client = TestClient(app)
+    username = "plc.pending.user"
+    password = "Strong-PLC-Request-2026!"
+
+    created = client.post(
+        "/api/auth/register",
+        json={
+            "name": "Pending User",
+            "username": username,
+            "email": "pending.user@example.com",
+            "role": "Engineer",
+            "password": password,
+        },
+    )
+    assert created.status_code == 201
+    assert created.json()["status"] == "PENDING"
+
+    denied = client.post(
+        "/api/auth/login",
+        json={"username": username, "password": password},
+    )
+    assert denied.status_code == 401
+    with pytest.raises(ValueError, match="PLC Lead"):
+        get_identity_store().decide(
+            username,
+            approve=True,
+            actor=get_settings().auth_username,
+            source_address="test",
+        )
+
+    operator = client.get("/api/auth/requests", headers=_headers(client))
+    assert operator.status_code == 403
+
+    settings = get_settings()
+    lead_headers = _headers_for(client, settings.auth_lead_username)
+    pending = client.get("/api/auth/requests", headers=lead_headers)
+    assert pending.status_code == 200
+    assert username in {item["username"] for item in pending.json()["requests"]}
+
+    approved = client.post(
+        f"/api/auth/requests/{username}/approve",
+        headers=lead_headers,
+    )
+    assert approved.status_code == 200
+    assert approved.json()["status"] == "ACTIVE"
+
+    login = client.post(
+        "/api/auth/login",
+        json={"username": username, "password": password},
+    )
+    assert login.status_code == 200
+    assert login.json()["role"] == "Engineer"
+
+    audit = client.get("/api/auth/requests", headers=lead_headers).json()["audit"]
+    assert any(
+        event["subject"] == username
+        and event["eventType"] == "ACCOUNT_APPROVAL"
+        and event["outcome"] == "ACTIVE"
+        for event in audit
+    )
+    with pytest.raises(psycopg.Error):
+        get_identity_store()._conn.execute(  # noqa: SLF001 - verify DB invariant
+            "UPDATE identity_audit SET detail = 'tampered' WHERE subject = %s",
+            (username,),
+        )
+
+
+def test_bootstrap_password_rotation_revokes_the_previous_password():
+    settings = get_settings()
+    schema = f"{settings.database_schema}_rotation"
+    first = IdentityStore(
+        settings.database_url,
+        bootstrap={"plc.operator": (UserRole.OPERATOR, "Old-Password!2026")},
+        schema=schema,
+    )
+    before = first.verify("plc.operator", "Old-Password!2026")
+    assert before is not None
+
+    rotated = IdentityStore(
+        settings.database_url,
+        bootstrap={"plc.operator": (UserRole.OPERATOR, "New-Password!2026")},
+        schema=schema,
+    )
+    assert rotated.verify("plc.operator", "Old-Password!2026") is None
+    after = rotated.verify("plc.operator", "New-Password!2026")
+    assert after is not None
+    assert after["authVersion"] == before["authVersion"] + 1

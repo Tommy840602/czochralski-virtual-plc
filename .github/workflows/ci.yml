@@ -44,6 +44,7 @@ jobs:
       PLC_AUTH_USERNAME: ci.operator
       PLC_AUTH_PASSWORD: ci-password-at-least-12
       PLC_AUTH_SECRET: ci-signing-secret-at-least-32-characters
+      PLC_DB_PASSWORD: ci-database-password
       DATA_ROOT: /tmp/plc-data
       SA_KEY_PATH: /tmp/sa-key.json
     steps:
@@ -165,7 +166,17 @@ jobs:
             -i "$HOME/.ssh/id_ed25519" \
             -o BatchMode=yes \
             "$DEPLOY_USER@$DEPLOY_HOST" \
-            "umask 077; cat > '$deploy_dir/.env.hetzner'"
+            "set -euo pipefail; \
+             current='$deploy_dir/.env.hetzner'; next='$deploy_dir/.env.hetzner.next'; \
+             umask 077; cat > \"\$next\"; database_password=''; \
+             if test -f \"\$current\"; then \
+               database_password=\$(sed -n 's/^PLC_DB_PASSWORD=//p' \"\$current\" | tail -n 1); \
+               database_password=\${database_password#\\'}; \
+               database_password=\${database_password%\\'}; \
+             fi; \
+             if test -z \"\$database_password\"; then database_password=\$(openssl rand -hex 32); fi; \
+             printf \"PLC_DB_PASSWORD='%s'\\n\" \"\$database_password\" >> \"\$next\"; \
+             chmod 600 \"\$next\"; mv \"\$next\" \"\$current\""
 
       - name: Deploy independent Plant Simulator
         if: steps.preflight.outputs.enabled == 'true'

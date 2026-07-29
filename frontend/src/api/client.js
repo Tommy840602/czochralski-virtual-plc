@@ -20,9 +20,9 @@ function buildQuery(params = {}) {
   return s ? `?${s}` : ''
 }
 
-async function request(path, { method = 'GET', params, body } = {}) {
+async function request(path, { method = 'GET', params, body, authenticated = true } = {}) {
   const headers = {}
-  const token = _getToken()
+  const token = authenticated ? _getToken() : ''
   if (token) headers.Authorization = `Bearer ${token}`
   if (body) headers['Content-Type'] = 'application/json'
 
@@ -38,7 +38,7 @@ async function request(path, { method = 'GET', params, body } = {}) {
     throw new Error('無法連線到 PLC API，請檢查網路後重試')
   }
 
-  if (res.status === 401) {
+  if (res.status === 401 && token) {
     _onUnauthorized()
     throw new Error('登入已失效，請重新登入')
   }
@@ -91,5 +91,17 @@ export const api = {
   riskBoard: () => get('/risk/board'),
   riskHazardCurve: () => get('/risk/hazard-curve'),
   riskIngot: (id) => get(`/risk/ingots/${id}`),
-  login: (username, password) => post('/auth/login', { username, password }),
+  login: (username, password) => request('/auth/login', {
+    method: 'POST',
+    body: { username, password },
+    authenticated: false,
+  }),
+  register: (body) => request('/auth/register', {
+    method: 'POST',
+    body,
+    authenticated: false,
+  }),
+  accessRequests: () => get('/auth/requests'),
+  decideAccessRequest: (username, decision) =>
+    post(`/auth/requests/${username}/${decision}`),
 }

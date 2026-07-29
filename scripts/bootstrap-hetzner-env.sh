@@ -5,6 +5,9 @@ project_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 target="$project_root/.env.hetzner"
 
 if [[ -f "$target" ]]; then
+  if ! grep -q '^PLC_DB_PASSWORD=' "$target"; then
+    printf "PLC_DB_PASSWORD='%s'\n" "$(openssl rand -hex 32)" >> "$target"
+  fi
   chmod 600 "$target"
   exit 0
 fi
@@ -16,10 +19,19 @@ is_plc_env() {
     grep -q '^PLC_AUTH_SECRET=' "$candidate"
 }
 
+ensure_database_password() {
+  local candidate="$1"
+  if ! grep -q '^PLC_DB_PASSWORD=' "$candidate"; then
+    printf "PLC_DB_PASSWORD='%s'\n" "$(openssl rand -hex 32)" >> "$candidate"
+  fi
+  chmod 600 "$candidate"
+}
+
 while IFS= read -r -d '' candidate; do
   [[ "$candidate" == "$target" ]] && continue
   if is_plc_env "$candidate"; then
     install -m 600 "$candidate" "$target"
+    ensure_database_password "$target"
     echo "Migrated existing PLC environment from $candidate."
     exit 0
   fi
@@ -56,6 +68,7 @@ if command -v docker >/dev/null 2>&1; then
         printf 'PLC_PLANT_API_URL=http://plant-simulator:8090\n'
         printf 'SA_KEY_PATH=/home/tommy/spc-platform/deploy/hetzner/sa-key.json\n'
       } > "$target"
+      ensure_database_password "$target"
       echo "Migrated PLC authentication from the existing backend container."
       exit 0
     fi

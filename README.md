@@ -36,6 +36,8 @@ Plant Simulator ⇄ Virtual PLC → DCS → Historian → SPC
   皆受既有登入驗證保護。
 - 登入提供 `Operator / Engineer / Lead` 三種 PLC 身份；角色寫入 HMAC token。
   Operator 可執行標準啟停，RESET 僅允許 Engineer 與 Lead。
+- 登入頁可自助申請三種角色；新帳號先進入 `PENDING`，由 PLC Lead 在「帳號申請」
+  核准或駁回。身份與 append-only 稽核事件持久化於 PostgreSQL，核准前不得登入。
 
 Plant Simulator 仍獨立維護於
 [`Tommy840602/czochralski-simulator`](https://github.com/Tommy840602/czochralski-simulator)；
@@ -107,8 +109,16 @@ scan runtime 與 I/O model；`repositories/base.py` 是研究資料抽象契約�
 `api/routes/` 只做參數轉換與錯誤碼。要換 DuckDB/Postgres 只需實作介面、改 `deps`。
 
 **技術棧**：FastAPI · asyncua / OPC UA · Vue 3 · Vue Router · Pinia · ECharts · pandas / numpy / scipy ·
-fsspec / gcsfs · Docker · nginx · Let's Encrypt。分析用純 numpy/scipy 手寫
+PostgreSQL 17 · fsspec / gcsfs · Docker · nginx · Let's Encrypt。分析用純 numpy/scipy 手寫
 （IRLS 邏輯迴歸、Mann-Whitney、BH-FDR、Kaplan-Meier、LTTB），不依賴 scikit-learn。
+
+### 身份與帳號申請
+
+PLC 人員角色為 `Operator / Engineer / Lead`。申請帳號後一律先進入 `PENDING`，
+只能由 Lead 在「帳號申請」核准或駁回；申請人不得在核准前登入。帳號、密碼雜湊、
+狀態與 append-only 身份稽核帳本都以 PostgreSQL 為唯一權威，不使用瀏覽器角色欄位
+或本機檔案判斷權限。正式部署的 PostgreSQL volume 與應用 release 分離，重部署不會
+重建帳號。
 
 ---
 
@@ -178,6 +188,8 @@ Plant 回報 `COMPLETED` 或 `ABORTED` 時，PLC 會清除 run request；DCS/SPC
 - 主機 nginx 托管前端 dist + 反代 `/api`，certbot 自動 TLS
 - 資源隔離（`mem_limit`），兩專案互不干擾
 - `PLC_ENVIRONMENT=production` 啟動前拒絕預設帳號、短密碼、弱簽章金鑰與萬用 CORS
+- 身份、帳號申請與稽核由 PostgreSQL 17 volume 保存；首次部署自動產生並持久化
+  `PLC_DB_PASSWORD`，後續 release 沿用同一密碼
 
 完整步驟見 [`deploy/DEPLOY.md`](deploy/DEPLOY.md)。
 

@@ -9,6 +9,25 @@
 name: plc
 
 services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: plc
+      POSTGRES_USER: plc
+      POSTGRES_PASSWORD: ${PLC_DB_PASSWORD:?}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U plc -d plc"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      industrial:
+        aliases:
+          - plc-postgres
+
   backend:
     build: ./backend
     environment:
@@ -21,6 +40,7 @@ services:
       PLC_AUTH_LEAD_USERNAME: ${PLC_AUTH_LEAD_USERNAME:-plc.lead}
       PLC_AUTH_PASSWORD: ${PLC_AUTH_PASSWORD:?}
       PLC_AUTH_SECRET: ${PLC_AUTH_SECRET:?}
+      PLC_DATABASE_URL: postgresql://plc:${PLC_DB_PASSWORD:?}@plc-postgres:5432/plc
       PLC_INGOT_CACHE_SIZE: ${PLC_INGOT_CACHE_SIZE:-16}
       PLC_RUNTIME_ENABLED: ${PLC_RUNTIME_ENABLED:-true}
       PLC_SCAN_INTERVAL_SECONDS: ${PLC_SCAN_INTERVAL_SECONDS:-0.2}
@@ -34,6 +54,9 @@ services:
       - "127.0.0.1:8000:8000"      # 只綁 localhost，由宿主機 nginx 反代
     mem_limit: 640m
     restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
     networks:
       industrial:
         aliases:
@@ -44,6 +67,9 @@ services:
     profiles: ["frontend-artifact"]
     image: plc-frontend:deploy
     build: ./frontend
+
+volumes:
+  postgres-data:
 
 networks:
   industrial:

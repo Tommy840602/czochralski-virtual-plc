@@ -23,6 +23,7 @@ const routes = [
   { path: '/control', component: () => import('./views/ControlView.vue') },
   { path: '/quality', component: () => import('./views/QualityView.vue') },
   { path: '/risk', component: () => import('./views/OperationalRiskView.vue') },
+  { path: '/access', component: () => import('./views/AccessRequestsView.vue') },
 ]
 
 const router = createRouter({ history: createWebHistory(), routes })

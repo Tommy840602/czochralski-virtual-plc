@@ -35,7 +35,8 @@ compose=(
 )
 
 "${compose[@]}" --profile frontend-artifact build backend frontend
-"${compose[@]}" up -d --no-deps backend
+"${compose[@]}" up -d postgres
+"${compose[@]}" up -d backend
 
 artifact_container="$(docker create plc-frontend:deploy)"
 staging_dir="$(mktemp -d)"

@@ -33,6 +33,8 @@ class Settings(BaseSettings):
     auth_password: str = DEFAULT_AUTH_PASSWORD
     auth_secret: str = DEFAULT_AUTH_SECRET
     token_ttl_hours: int = 12
+    database_url: str = "postgresql://plc:plc@127.0.0.1:5434/plc"
+    database_schema: str = "plc_identity"
 
     # 單一訊號回傳前端的最大點數，超過則以 LTTB 降採樣
     max_series_points: int = 3000
@@ -53,6 +55,8 @@ class Settings(BaseSettings):
         if self.environment != "production":
             return self
         errors = []
+        if not self.database_url.startswith("postgresql://"):
+            errors.append("PLC_DATABASE_URL 必須使用 PostgreSQL")
         if self.auth_username == DEFAULT_AUTH_USERNAME:
             errors.append("PLC_AUTH_USERNAME 不得使用預設 admin")
         identities = {

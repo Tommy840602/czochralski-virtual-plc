@@ -1,4 +1,21 @@
 services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: plc
+      POSTGRES_USER: plc
+      POSTGRES_PASSWORD: ${PLC_DB_PASSWORD:-plc}
+    ports:
+      - "127.0.0.1:${PLC_DB_PORT:-5434}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U plc -d plc"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    restart: unless-stopped
+
   backend:
     build: ./backend
     environment:
@@ -11,6 +28,7 @@ services:
       PLC_AUTH_LEAD_USERNAME: ${PLC_AUTH_LEAD_USERNAME:-plc.lead}
       PLC_AUTH_PASSWORD: ${PLC_AUTH_PASSWORD:-admin0000}
       PLC_AUTH_SECRET: ${PLC_AUTH_SECRET:-dev-secret-change-me-please-use-32+chars}
+      PLC_DATABASE_URL: postgresql://plc:${PLC_DB_PASSWORD:-plc}@postgres:5432/plc
       # Virtual PLC 與獨立 Plant Simulator 的通訊設定。
       PLC_RUNTIME_ENABLED: ${PLC_RUNTIME_ENABLED:-false}
       PLC_SCAN_INTERVAL_SECONDS: ${PLC_SCAN_INTERVAL_SECONDS:-0.2}
@@ -19,6 +37,9 @@ services:
       PLC_PLANT_API_URL: ${PLC_PLANT_API_URL:-http://plant-simulator:8090}
     expose:
       - "8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
     restart: unless-stopped
 
   frontend:
@@ -28,3 +49,6 @@ services:
     ports:
       - "${WEB_PORT:-8080}:80"
     restart: unless-stopped
+
+volumes:
+  postgres-data:

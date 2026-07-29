@@ -5,6 +5,7 @@ from fastapi import Depends, Header, HTTPException
 
 from app.core.config import Settings, get_settings
 from app.core.security import AuthenticatedUser, verify_token
+from app.repositories.identity_store import get_identity_store
 from app.repositories.parquet_repo import ParquetRepository
 from app.services.catalog_service import CatalogService
 from app.services.control_service import ControlService
@@ -24,7 +25,15 @@ def require_user(authorization: str | None = Header(default=None)) -> Authentica
         raise HTTPException(status_code=401, detail="未登入", headers={"WWW-Authenticate": "Bearer"})
     token = authorization.removeprefix("Bearer ").strip()
     try:
-        return verify_token(token, get_settings().auth_secret)
+        token_user = verify_token(token, get_settings().auth_secret)
+        active = get_identity_store().get_active(token_user.username)
+        if not active:
+            raise ValueError("帳號尚未啟用")
+        if active["authVersion"] != token_user.auth_version:
+            raise ValueError("登入已失效，請重新登入")
+        if active["role"] != token_user.role.value:
+            raise ValueError("角色已變更，請重新登入")
+        return token_user
     except ValueError as exc:
         raise HTTPException(status_code=401, detail=str(exc), headers={"WWW-Authenticate": "Bearer"})
 

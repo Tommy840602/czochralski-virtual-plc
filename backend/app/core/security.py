@@ -37,6 +37,7 @@ ROLE_PERMISSIONS: dict[UserRole, tuple[str, ...]] = {
 class AuthenticatedUser:
     username: str
     role: UserRole
+    auth_version: int = 1
 
     @property
     def permissions(self) -> tuple[str, ...]:
@@ -59,11 +60,19 @@ def create_token(
     secret: str,
     ttl_seconds: int,
     role: UserRole = UserRole.OPERATOR,
+    auth_version: int = 1,
 ) -> tuple[str, int]:
     """回傳 (token, expiresAtEpoch)。"""
     exp = int(time.time()) + ttl_seconds
     body = _b64e(
-        json.dumps({"sub": username, "role": role.value, "exp": exp}).encode()
+        json.dumps(
+            {
+                "sub": username,
+                "role": role.value,
+                "ver": auth_version,
+                "exp": exp,
+            }
+        ).encode()
     )
     sig = _b64e(hmac.new(secret.encode(), body.encode(), hashlib.sha256).digest())
     return f"{body}.{sig}", exp
@@ -86,9 +95,14 @@ def verify_token(token: str, secret: str) -> AuthenticatedUser:
     try:
         role = UserRole(payload.get("role", UserRole.OPERATOR.value))
         username = str(payload["sub"])
+        auth_version = int(payload.get("ver", 1))
     except (KeyError, TypeError, ValueError) as exc:
         raise ValueError("token 身份資料錯誤") from exc
-    return AuthenticatedUser(username=username, role=role)
+    return AuthenticatedUser(
+        username=username,
+        role=role,
+        auth_version=auth_version,
+    )
 
 
 def check_credentials(username: str, password: str, expected_user: str, expected_pw: str) -> bool:
