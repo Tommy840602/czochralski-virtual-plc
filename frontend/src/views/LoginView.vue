@@ -32,9 +32,9 @@ const demoAccounts = [
 const defaultAccount = demoAccounts[0]
 const disclosureItems = [
   '本專案為個人面試展示用途，所有爐子模具圖、設備示意圖與熱場模擬圖皆由 AI 生成或基於模擬情境自行設計，並非取自任何公司、客戶、供應商或第三方之內部圖面、實機照片、工程文件或專有設計資料。',
-  '展示中之分析報告與技術說明為 AI 輔助產生之模擬內容，未引用、改寫、揭露或還原任何內部技術文件、SOP、製程規範、設備手冊或商業資料。所有製程參數、感測數值、爐台狀態、警報事件、品質數據與報表內容皆為亂數生成或模擬資料。',
-  '本專案所展示之軟體架構、資料流程、系統模組、通訊方式、服務切分、資料庫設計與部署方式皆為模擬設計，僅用於展示個人開發與系統設計能力。',
-  '本專案之命名、畫面配置、功能模組、資料表欄位、API 設計與展示流程皆為個人基於公開技術知識與模擬需求自行設計，未對應任何實際公司或產線。',
+  '展示中之分析報告與技術說明為 AI 輔助產生之模擬內容，未引用、改寫、揭露或還原任何內部技術文件、SOP、製程規範、設備手冊或商業資料。所有製程參數、感測數值、爐台狀態、警報事件、品質數據與報表內容皆為亂數生成或模擬資料，僅供系統架構與技術能力展示，不代表任何實際產線、設備、製程、配方或生產條件。',
+  '本專案所展示之軟體架構、資料流程、系統模組、通訊方式、服務切分、資料庫設計與部署方式皆為模擬設計，僅用於展示個人開發與系統設計能力，與任何實際公司、產線、設備或既有系統之真實架構無關。',
+  '本專案之命名、畫面配置、功能模組、資料表欄位、API 設計、系統架構圖與展示流程，皆為個人基於公開技術知識與模擬需求自行設計，未參考、複製、改寫、還原或對應任何特定公司、客戶、供應商或既有系統之內部架構、程式碼、資料模型、網路拓樸、權限設計、製程邏輯或維運流程。',
   '本專案不具備實際生產控制用途，亦不應視為可直接導入現場之正式工控系統、MES、SCADA、EAP 或品質管理系統。',
 ]
 
@@ -128,7 +128,6 @@ async function submitRegistration() {
       <div class="hero-copy">
         <p>VIRTUAL CONTROL RUNTIME / SIMULATION</p>
         <h1><span>CZ</span> Virtual PLC</h1>
-        <h2>把設備訊號轉成可信任的控制決策</h2>
         <p class="hero-description">
           Plant Simulator 經 OPC UA 進入 PLC Input Image，由 Interlock、Sequence
           與 Local Control 執行確定性掃描，再將受控製程資料交付 DCS。
@@ -218,7 +217,6 @@ async function submitRegistration() {
         <div class="panel-heading">
           <div>
             <small>IDENTITY GATEWAY</small>
-            <b>授權控制站</b>
           </div>
           <span><i /> SECURE CHANNEL</span>
         </div>
@@ -231,19 +229,11 @@ async function submitRegistration() {
         <form v-if="mode === 'login'" class="auth-form" @submit.prevent="submit">
           <div class="auth-title">
             <small>AUTHORIZED PERSONNEL ONLY</small>
-            <h1>登入控制系統</h1>
+            <h1>登入 PLC 控制系統</h1>
             <p>使用核准的 CZ Virtual PLC 身份進入設備控制與模擬功能。</p>
           </div>
 
           <div class="demo-access">
-            <div class="demo-access-heading">
-              <div>
-                <small>INTERVIEW DEMO ACCOUNT</small>
-                <b>{{ localDemoMode ? '選擇操作身份，自動帶入本機帳密' : '選擇操作身份，密碼由展示者提供' }}</b>
-              </div>
-              <span>{{ localDemoMode ? 'LOCAL DEMO' : 'PROTECTED CREDENTIAL' }}</span>
-            </div>
-
             <div class="demo-role-grid">
               <button
                 v-for="account in demoAccounts"
@@ -296,11 +286,6 @@ async function submitRegistration() {
             <span>{{ loading ? '驗證中…' : '驗證身份並進入系統' }}</span>
             <b>ENTER ↗</b>
           </button>
-
-          <div class="security-note">
-            <b>{{ localDemoMode ? 'LOCAL DEMO ONLY' : 'PROTECTED INTERVIEW DEMO' }}</b>
-            <span>{{ localDemoMode ? '本機開發模式可自動填入測試帳密。' : '正式站不公開、不嵌入且不自動填入展示密碼。' }}</span>
-          </div>
         </form>
 
         <form v-else class="auth-form" @submit.prevent="submitRegistration">

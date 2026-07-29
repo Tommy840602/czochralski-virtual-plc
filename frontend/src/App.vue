@@ -98,7 +98,7 @@ function logout() {
         <div class="brand-text">
           <span class="brand-kicker">CONTROL SYSTEM · CZ-01</span>
           <h1>CZ Virtual PLC</h1>
-          <span class="brand-subtitle">Virtual Control Runtime</span>
+          <span class="brand-subtitle">設備控制系統</span>
         </div>
       </div>
 
