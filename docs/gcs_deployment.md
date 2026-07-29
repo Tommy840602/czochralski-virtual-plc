@@ -58,7 +58,7 @@ gcloud storage rm gs://ingot/rawdata/.DS_Store gs://ingot/table2/.DS_Store 2>/de
 ## 計費修復後的驗證步驟
 
 ```bash
-cd plc-research/backend
+cd cz-virtual-plc/backend
 PLC_DATA_ROOT=gs://ingot PLC_GCS_PROJECT=ingot-503123 \
   .venv/bin/python -m uvicorn app.main:app --port 8000
 # 健康檢查應回 provider=gcs、rawdataExists=true

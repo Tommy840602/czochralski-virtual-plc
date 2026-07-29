@@ -14,7 +14,7 @@ import {
 import { CanvasRenderer } from 'echarts/renderers'
 import { chartTheme } from '@/composables/theme'
 
-// 僅註冊研究平台實際使用的圖表與元件，避免把整套 ECharts 打進瀏覽器。
+// 僅註冊工程分析實際使用的圖表與元件，避免把整套 ECharts 打進瀏覽器。
 use([
   BarChart,
   BoxplotChart,

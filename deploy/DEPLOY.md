@@ -52,11 +52,12 @@ docker compose up -d
 ```bash
 # 1) 傳程式碼（用 git 或 scp/rsync）
 ssh root@伺服器IP 'mkdir -p /srv/plc'
-git clone https://github.com/Tommy840602/czochralski-plc-research.git /srv/plc/app
-# 或： rsync -av --exclude node_modules --exclude .venv plc-research/ root@伺服器IP:/srv/plc/app/
+export CZ_VIRTUAL_PLC_REPOSITORY_URL="<GitHub repository URL>"
+git clone "$CZ_VIRTUAL_PLC_REPOSITORY_URL" /srv/plc/app
+# 或： rsync -av --exclude node_modules --exclude .venv cz-virtual-plc/ root@伺服器IP:/srv/plc/app/
 
 # 2) 傳資料（232MB，只需一次；資料不進 git）
-rsync -av --exclude='plc-research' --exclude='.DS_Store' \
+rsync -av --exclude='cz-virtual-plc' --exclude='.DS_Store' \
   /你本機/output/  root@伺服器IP:/srv/plc/data/
 # 傳完伺服器上應有 /srv/plc/data/rawdata、table2、segment_summary.parquet …
 

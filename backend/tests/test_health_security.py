@@ -3,7 +3,7 @@ import psycopg
 import pytest
 
 from app.core.config import Settings, get_settings
-from app.core.security import UserRole
+from app.core.security import ROLE_PERMISSIONS, UserRole
 from app.repositories.identity_store import IdentityStore, get_identity_store
 from app.main import app
 import app.main as main_module
@@ -112,6 +112,12 @@ def test_production_rejects_default_or_weak_credentials():
         Settings(_env_file=None, **{**base, "auth_secret": "short"})
     with pytest.raises(ValueError, match="CORS"):
         Settings(_env_file=None, **{**base, "cors_origins": ["*"]})
+
+
+def test_engineering_roles_use_analytics_permission():
+    assert "analytics:view" in ROLE_PERMISSIONS[UserRole.ENGINEER]
+    assert "analytics:view" in ROLE_PERMISSIONS[UserRole.LEAD]
+    assert "analytics:view" not in ROLE_PERMISSIONS[UserRole.OPERATOR]
 
 
 @pytest.mark.parametrize(

@@ -22,12 +22,12 @@ class UserRole(StrEnum):
 
 ROLE_PERMISSIONS: dict[UserRole, tuple[str, ...]] = {
     UserRole.OPERATOR: ("plc:read", "plc:operate"),
-    UserRole.ENGINEER: ("plc:read", "plc:operate", "plc:reset", "research:view"),
+    UserRole.ENGINEER: ("plc:read", "plc:operate", "plc:reset", "analytics:view"),
     UserRole.LEAD: (
         "plc:read",
         "plc:operate",
         "plc:reset",
-        "research:view",
+        "analytics:view",
         "access:manage",
     ),
 }

@@ -35,8 +35,8 @@ async def lifespan(_: FastAPI):
 
 
 app = FastAPI(
-    title="CZ Virtual PLC & Research Platform",
-    description="長晶爐 Virtual PLC 控制、I/O 聯鎖與製程資料研究平台",
+    title="CZ Virtual PLC",
+    description="長晶爐 Virtual PLC 控制、I/O 聯鎖與製程資料分析平台",
     version="0.2.0",
     lifespan=lifespan,
 )

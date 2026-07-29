@@ -42,7 +42,7 @@ function logout() {
         </div>
 
         <div class="brand-text">
-          <h1>CZ PLC</h1>
+          <h1>CZ Virtual PLC</h1>
           <span class="brand-subtitle">設備控制平台</span>
         </div>
       </div>

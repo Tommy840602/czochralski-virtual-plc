@@ -1,8 +1,8 @@
-# CZ Virtual PLC & Research Platform
+# CZ Virtual PLC
 
 > 獨立 Plant Simulator 的控制中樞：透過 OPC UA 掃描 Sensor/I/O，執行
 > Interlock、Sequence 與 Local Control，再將可信任的 PLC 資料交給 DCS。
-> 原有的 CZ 時序資料研究、預警與品質分析功能完整保留。
+> 原有的 CZ 時序資料分析、預警與品質功能完整保留。
 
 🔗 **Live Demo**：[plc.tommy-huang.dev](https://plc.tommy-huang.dev)（展示帳號 `admin`，密碼請洽作者）
 
@@ -45,7 +45,7 @@ Plant Simulator 仍獨立維護於
 
 ---
 
-## ✨ 研究平台亮點
+## ✨ 平台亮點
 
 這不是一個「跑出高 AUC 就收工」的展示，而是一套**誠實面對資料的分析系統**：
 
@@ -64,7 +64,7 @@ Plant Simulator 仍獨立維護於
 
 ---
 
-## 🧭 功能總覽（PLC Runtime + 8 個研究頁）
+## 🧭 功能總覽（Virtual PLC Runtime + 8 個工程分析頁）
 
 | 頁面 | 內容 |
 | --- | --- |
@@ -95,7 +95,7 @@ Plant Simulator 仍獨立維護於
                             │  127.0.0.1:8000
                     ┌───────▼────────┐
                     │  FastAPI (分層) │
-                    │  PLC runtime + research services
+                    │  Virtual PLC runtime + analytics services
                     └───────┬────────┘
                             │  fsspec
                     ┌───────▼────────┐
@@ -104,7 +104,7 @@ Plant Simulator 仍獨立維護於
 ```
 
 **後端分層**（`backend/app/`）：`plc/` 是 OPC UA adapter、tag contract、
-scan runtime 與 I/O model；`repositories/base.py` 是研究資料抽象契約，
+scan runtime 與 I/O model；`repositories/base.py` 是分析資料抽象契約，
 `parquet_repo` 以 fsspec 讀本機或 GCS 並含 LRU 快取；`services/` 為純運算；
 `api/routes/` 只做參數轉換與錯誤碼。要換 DuckDB/Postgres 只需實作介面、改 `deps`。
 
@@ -210,7 +210,7 @@ backend/app/
                  earlywarning / quality / risk（純運算）
   api/routes/    薄 HTTP 層 + JWT 保護
 frontend/src/
-  views/         PLC Runtime + 8 個研究頁 + 登入
+  views/         Virtual PLC Runtime + 8 個工程分析頁 + 登入
   composables/   theme（日夜）、useAsync、format
   components/     EChart（主題感知薄封裝）、StateBlock
 analysis/        配對世代斷線分析管線

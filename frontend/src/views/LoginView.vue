@@ -114,40 +114,115 @@ async function submitRegistration() {
 <template>
   <main class="auth-shell">
     <section class="auth-context">
-      <header>
-        <div>
-          <b>PLC</b>
-          <small>VIRTUAL CONTROL RUNTIME</small>
+      <header class="system-header">
+        <div class="system-brand">
+          <img src="/plc.png" alt="">
+          <div>
+            <b>CZ VIRTUAL PLC</b>
+            <small>CONTROL SYSTEM · CZ-01</small>
+          </div>
         </div>
+        <div class="runtime-live"><i /> SYSTEM READY</div>
       </header>
 
-      <div class="auth-copy">
-        <p>INTERVIEW DEMONSTRATION · SIMULATION ONLY</p>
-        <span>本系統僅展示個人軟體開發、設備模擬與工控整合能力；不對應任何實際公司、設備或產線。</span>
+      <div class="hero-copy">
+        <p>VIRTUAL CONTROL RUNTIME / SIMULATION</p>
+        <h1><span>CZ</span> Virtual PLC</h1>
+        <h2>把設備訊號轉成可信任的控制決策</h2>
+        <p class="hero-description">
+          Plant Simulator 經 OPC UA 進入 PLC Input Image，由 Interlock、Sequence
+          與 Local Control 執行確定性掃描，再將受控製程資料交付 DCS。
+        </p>
       </div>
 
-      <section class="project-disclosure" aria-labelledby="disclosure-title">
-        <div class="disclosure-heading">
-          <small>PROJECT NOTICE</small>
-          <h2 id="disclosure-title"># 聲明</h2>
-          <span>5 ITEMS</span>
+      <section class="plc-console" aria-label="Virtual PLC runtime architecture">
+        <div class="console-topbar">
+          <div>
+            <i /><i /><i />
+          </div>
+          <code>RACK CZ01-PLC-A · SLOT 01—04</code>
+          <span>RUN</span>
         </div>
+
+        <div class="module-rack">
+          <article>
+            <div class="module-leds"><i /><i /><i /></div>
+            <small>01 / INPUT</small>
+            <b>OPC UA</b>
+            <span>Plant.* · Status.*</span>
+          </article>
+          <article>
+            <div class="module-leds"><i /><i /></div>
+            <small>02 / SAFETY</small>
+            <b>INTERLOCK</b>
+            <span>E-Stop · Quality · Door</span>
+          </article>
+          <article>
+            <div class="module-leds"><i /><i /><i /></div>
+            <small>03 / LOGIC</small>
+            <b>SEQUENCE</b>
+            <span>MELT → BODY → TAIL</span>
+          </article>
+          <article>
+            <div class="module-leds"><i /><i /></div>
+            <small>04 / OUTPUT</small>
+            <b>CONTROL</b>
+            <span>Actuator command image</span>
+          </article>
+        </div>
+
+        <div class="signal-flow" aria-hidden="true">
+          <span>PLANT</span><i /><b>INPUT IMAGE</b><i /><b>PLC SCAN</b><i /><span>DCS</span>
+        </div>
+      </section>
+
+      <div class="runtime-metrics">
+        <article>
+          <small>OPC UA LINK</small>
+          <b><i /> ONLINE</b>
+          <span>Plant Simulator</span>
+        </article>
+        <article>
+          <small>NOMINAL SCAN</small>
+          <b>20 <em>ms</em></b>
+          <span>Deterministic cycle</span>
+        </article>
+        <article>
+          <small>SAFETY MODE</small>
+          <b>SIMULATION</b>
+          <span>Physical output disabled</span>
+        </article>
+      </div>
+
+      <details class="project-disclosure">
+        <summary>
+          <span><i /> 模擬展示與資料聲明</span>
+          <small>PROJECT NOTICE · 5 ITEMS</small>
+        </summary>
         <ol>
           <li v-for="(item, index) in disclosureItems" :key="index">
             <b>{{ String(index + 1).padStart(2, '0') }}</b>
             <p>{{ item }}</p>
           </li>
         </ol>
-      </section>
+      </details>
 
-      <footer>
-        <i /> FASTAPI AUTH · HMAC TOKEN
-        <span>PLC RBAC POLICY v1</span>
+      <footer class="system-footer">
+        <span>FASTAPI AUTH · HMAC TOKEN · POSTGRESQL IDENTITY</span>
+        <code>SYS/CZ-VPLC/AUTH-01</code>
       </footer>
     </section>
 
     <section class="auth-form-panel">
       <div class="auth-form-wrap">
+        <div class="panel-heading">
+          <div>
+            <small>IDENTITY GATEWAY</small>
+            <b>授權控制站</b>
+          </div>
+          <span><i /> SECURE CHANNEL</span>
+        </div>
+
         <div class="auth-tabs" role="tablist" aria-label="PLC 登入或申請帳號">
           <button :class="{ active: mode === 'login' }" type="button" role="tab" @click="setMode('login')">登入</button>
           <button :class="{ active: mode === 'register' }" type="button" role="tab" @click="setMode('register')">申請帳號</button>
@@ -155,9 +230,9 @@ async function submitRegistration() {
 
         <form v-if="mode === 'login'" class="auth-form" @submit.prevent="submit">
           <div class="auth-title">
-            <small>SECURE PLC SIGN IN</small>
-            <h1>登入 CZ Virtual PLC</h1>
-            <p>請使用核准的 PLC 操作身份進入設備控制與模擬功能。</p>
+            <small>AUTHORIZED PERSONNEL ONLY</small>
+            <h1>登入控制系統</h1>
+            <p>使用核准的 CZ Virtual PLC 身份進入設備控制與模擬功能。</p>
           </div>
 
           <div class="demo-access">
@@ -178,9 +253,11 @@ async function submitRegistration() {
                 type="button"
                 @click="selectAccount(account)"
               >
-                <span>{{ account.department }}</span>
-                <b>{{ account.role }}</b>
-                <code>{{ account.username }}</code>
+                <span>{{ account.role.slice(0, 2).toUpperCase() }}</span>
+                <div>
+                  <b>{{ account.role }}</b>
+                  <code>{{ account.username }}</code>
+                </div>
                 <small>{{ account.access }}</small>
               </button>
             </div>
@@ -216,8 +293,8 @@ async function submitRegistration() {
           <p v-if="error" class="auth-message error">{{ error }}</p>
 
           <button class="auth-submit" type="submit" :disabled="loading || !username || !password">
-            {{ loading ? '驗證中…' : '驗證身份並進入系統' }}
-            <span>→</span>
+            <span>{{ loading ? '驗證中…' : '驗證身份並進入系統' }}</span>
+            <b>ENTER ↗</b>
           </button>
 
           <div class="security-note">
@@ -229,7 +306,7 @@ async function submitRegistration() {
         <form v-else class="auth-form" @submit.prevent="submitRegistration">
           <div class="auth-title">
             <small>ACCESS REQUEST</small>
-            <h1>申請 PLC 帳號</h1>
+            <h1>申請控制站權限</h1>
             <p>申請送出後狀態為 PENDING，必須由既有 PLC Lead 核准才能登入。</p>
           </div>
 
@@ -238,7 +315,7 @@ async function submitRegistration() {
             <h2>申請已送出</h2>
             <p>{{ registration.username }} 正在等待 PLC Lead 核准。</p>
             <button class="auth-submit" type="button" @click="setMode('login')">
-              返回登入 <span>→</span>
+              <span>返回登入</span><b>RETURN ↗</b>
             </button>
           </div>
 
@@ -293,7 +370,7 @@ async function submitRegistration() {
               type="submit"
               :disabled="loading || !registration.name || !registration.username || !registration.email || !registration.password"
             >
-              {{ loading ? '送出中…' : '送出權限申請' }} <span>→</span>
+              <span>{{ loading ? '送出中…' : '送出權限申請' }}</span><b>SUBMIT ↗</b>
             </button>
           </template>
         </form>
@@ -306,109 +383,373 @@ async function submitRegistration() {
 .auth-shell {
   min-height: 100vh;
   display: grid;
-  grid-template-columns: minmax(520px, 1.08fr) minmax(500px, 0.92fr);
-  background: #1e1e1e;
-  color: #d4d4d4;
+  grid-template-columns: minmax(600px, 1.12fr) minmax(500px, 0.88fr);
+  background: #060a0d;
+  color: #dce9e8;
 }
 
 .auth-context {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  padding: 34px 48px;
+  gap: 24px;
+  padding: 32px clamp(36px, 4vw, 72px);
   background:
-    radial-gradient(circle at 80% 20%, rgba(63, 182, 173, 0.16), transparent 34%),
-    linear-gradient(145deg, #111c1a, #07100f 72%);
-  border-right: 1px solid #3c3c3c;
+    linear-gradient(rgba(63, 214, 198, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(63, 214, 198, 0.035) 1px, transparent 1px),
+    radial-gradient(circle at 12% 8%, rgba(53, 212, 192, 0.16), transparent 28%),
+    radial-gradient(circle at 85% 58%, rgba(43, 108, 126, 0.16), transparent 32%),
+    #071114;
+  background-size: 42px 42px, 42px 42px, auto, auto, auto;
+  border-right: 1px solid #1e3438;
+  overflow: auto;
 }
 
-.auth-context header b,
-.auth-context header small {
+.system-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #1c3437;
+}
+
+.system-brand {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+}
+
+.system-brand img {
+  width: 42px;
+  height: 42px;
+  padding: 7px;
+  object-fit: contain;
+  border: 1px solid #2e5758;
+  border-radius: 10px;
+  background: #0b1c1f;
+}
+
+.system-brand b,
+.system-brand small {
   display: block;
 }
 
-.auth-context header b {
+.system-brand b {
   font-size: 12px;
-  letter-spacing: 0.16em;
-}
-
-.auth-context header small {
-  margin-top: 5px;
-  color: #78918c;
-  font: 7px ui-monospace, monospace;
   letter-spacing: 0.13em;
 }
 
-.auth-copy {
-  margin: 34px 0 22px;
+.system-brand small {
+  margin-top: 5px;
+  color: #668187;
+  font: 8px ui-monospace, monospace;
+  letter-spacing: 0.12em;
 }
 
-.auth-copy > p {
-  margin: 0 0 12px;
-  color: #4ec9b0;
+.runtime-live,
+.panel-heading > span {
+  color: #7b9b9f;
   font: 8px ui-monospace, monospace;
+  letter-spacing: 0.12em;
+  white-space: nowrap;
+}
+
+.runtime-live i,
+.panel-heading > span i,
+.runtime-metrics b i,
+.project-disclosure summary i {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 7px;
+  border-radius: 50%;
+  background: #63e6a8;
+  box-shadow: 0 0 12px rgba(99, 230, 168, 0.85);
+}
+
+.hero-copy {
+  max-width: 760px;
+}
+
+.hero-copy > p:first-child {
+  margin: 0 0 10px;
+  color: #47d8c8;
+  font: 9px ui-monospace, monospace;
   letter-spacing: 0.18em;
 }
 
-.auth-copy > span {
+.hero-copy h1 {
+  margin: 0;
+  color: #f2fbfa;
+  font-size: clamp(42px, 5vw, 72px);
+  font-weight: 650;
+  line-height: 0.98;
+  letter-spacing: -0.055em;
+}
+
+.hero-copy h1 span {
+  color: #47d8c8;
+}
+
+.hero-copy h2 {
+  margin: 16px 0 0;
+  color: #b6cdcf;
+  font-size: clamp(17px, 1.6vw, 23px);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.hero-description {
+  max-width: 700px;
+  margin: 15px 0 0;
+  color: #789397;
+  font-size: 12px;
+  line-height: 1.85;
+}
+
+.plc-console {
+  border: 1px solid #285054;
+  border-radius: 16px;
+  overflow: hidden;
+  background: rgba(5, 14, 17, 0.88);
+  box-shadow: 0 26px 80px rgba(0, 0, 0, 0.34);
+}
+
+.console-topbar {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  min-height: 42px;
+  padding: 0 16px;
+  border-bottom: 1px solid #203b3f;
+  background: #0c1b1e;
+}
+
+.console-topbar > div {
+  display: flex;
+  gap: 5px;
+}
+
+.console-topbar > div i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #3c6669;
+}
+
+.console-topbar > div i:first-child {
+  background: #4dd7c7;
+}
+
+.console-topbar code {
+  color: #6f8c91;
+  font-size: 8px;
+  letter-spacing: 0.08em;
+}
+
+.console-topbar > span {
+  justify-self: end;
+  padding: 4px 8px;
+  border: 1px solid #2f7356;
+  border-radius: 999px;
+  color: #7aeca9;
+  font: 8px ui-monospace, monospace;
+}
+
+.module-rack {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  padding: 12px;
+  background: #102327;
+}
+
+.module-rack article {
+  min-height: 128px;
+  padding: 14px;
+  border: 1px solid #28474b;
+  background:
+    linear-gradient(135deg, rgba(70, 215, 198, 0.06), transparent 54%),
+    #0a171a;
+}
+
+.module-leds {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 24px;
+}
+
+.module-leds i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #63e6a8;
+  box-shadow: 0 0 7px rgba(99, 230, 168, 0.6);
+}
+
+.module-leds i:last-child {
+  background: #efbe68;
+  box-shadow: 0 0 7px rgba(239, 190, 104, 0.55);
+}
+
+.module-rack small,
+.module-rack b,
+.module-rack span {
   display: block;
-  max-width: 680px;
-  color: #8fa39e;
-  font-size: 11px;
-  line-height: 1.8;
+}
+
+.module-rack small {
+  color: #537479;
+  font: 8px ui-monospace, monospace;
+  letter-spacing: 0.08em;
+}
+
+.module-rack b {
+  margin-top: 7px;
+  color: #d7e9e8;
+  font: 600 12px ui-monospace, monospace;
+  letter-spacing: 0.08em;
+}
+
+.module-rack span {
+  margin-top: 7px;
+  color: #638187;
+  font-size: 8px;
+  line-height: 1.45;
+}
+
+.signal-flow {
+  display: grid;
+  grid-template-columns: auto 1fr auto 1fr auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 16px 13px;
+  border-top: 1px solid #203b3f;
+  color: #648287;
+  font: 8px ui-monospace, monospace;
+  letter-spacing: 0.05em;
+}
+
+.signal-flow i {
+  height: 1px;
+  background: linear-gradient(90deg, #24484c, #4dd7c7);
+}
+
+.signal-flow b {
+  color: #9eb6b8;
+  font-weight: 500;
+}
+
+.runtime-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.runtime-metrics article {
+  padding: 14px 16px;
+  border: 1px solid #1f3a3e;
+  border-radius: 10px;
+  background: rgba(8, 23, 26, 0.72);
+}
+
+.runtime-metrics small,
+.runtime-metrics b,
+.runtime-metrics span {
+  display: block;
+}
+
+.runtime-metrics small {
+  color: #55757a;
+  font: 8px ui-monospace, monospace;
+  letter-spacing: 0.09em;
+}
+
+.runtime-metrics b {
+  margin-top: 8px;
+  color: #d8e9e8;
+  font: 600 14px ui-monospace, monospace;
+}
+
+.runtime-metrics b i {
+  width: 6px;
+  height: 6px;
+}
+
+.runtime-metrics em {
+  color: #69868b;
+  font-size: 9px;
+  font-style: normal;
+}
+
+.runtime-metrics span {
+  margin-top: 5px;
+  color: #607b80;
+  font-size: 8px;
 }
 
 .project-disclosure {
-  min-height: 0;
-  flex: 1;
-  border: 1px solid #29443e;
-  background: #081311;
+  border: 1px solid #1d3639;
+  border-radius: 10px;
+  background: rgba(7, 20, 23, 0.74);
 }
 
-.disclosure-heading {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 5px 12px;
-  align-items: end;
-  padding: 14px 18px;
-  border-bottom: 1px solid #29443e;
-  background: #0b1715;
+.project-disclosure summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 13px 15px;
+  color: #90aaad;
+  font-size: 10px;
+  cursor: pointer;
+  list-style: none;
 }
 
-.disclosure-heading small {
-  color: #4ec9b0;
-  font: 7px ui-monospace, monospace;
-  letter-spacing: 0.15em;
+.project-disclosure summary::-webkit-details-marker {
+  display: none;
 }
 
-.disclosure-heading h2 {
-  grid-row: 2;
-  margin: 0;
-  color: #f0f4f3;
-  font-size: 18px;
+.project-disclosure summary::after {
+  content: "+";
+  color: #4dd7c7;
+  font: 16px ui-monospace, monospace;
 }
 
-.disclosure-heading span {
-  grid-column: 2;
-  grid-row: 1 / 3;
-  color: #68817a;
-  font: 7px ui-monospace, monospace;
+.project-disclosure[open] summary::after {
+  content: "−";
+}
+
+.project-disclosure summary small {
+  margin-left: auto;
+  color: #4d6a6f;
+  font: 8px ui-monospace, monospace;
+  letter-spacing: 0.08em;
+}
+
+.project-disclosure summary i {
+  width: 6px;
+  height: 6px;
+  background: #efbe68;
+  box-shadow: 0 0 9px rgba(239, 190, 104, 0.55);
 }
 
 .project-disclosure ol {
-  max-height: calc(100vh - 260px);
+  max-height: 260px;
   overflow: auto;
   margin: 0;
-  padding: 0 18px;
+  padding: 0 16px 8px;
+  border-top: 1px solid #193034;
   list-style: none;
 }
 
 .project-disclosure li {
   display: grid;
-  grid-template-columns: 32px 1fr;
+  grid-template-columns: 28px 1fr;
   gap: 12px;
-  padding: 14px 0;
-  border-bottom: 1px solid #1c312c;
+  padding: 12px 0;
+  border-bottom: 1px solid #152b2e;
 }
 
 .project-disclosure li:last-child {
@@ -416,106 +757,133 @@ async function submitRegistration() {
 }
 
 .project-disclosure li > b {
-  color: #4ec9b0;
+  color: #48cdbf;
   font: 700 8px ui-monospace, monospace;
 }
 
 .project-disclosure li > p {
   margin: 0;
-  color: #9aaba7;
+  color: #708b8f;
   font-size: 9px;
-  line-height: 1.75;
-  text-align: justify;
+  line-height: 1.7;
 }
 
-.auth-context footer {
-  margin-top: 18px;
-  color: #68817a;
-  font: 7px ui-monospace, monospace;
-  letter-spacing: 0.1em;
-}
-
-.auth-context footer i {
-  display: inline-block;
-  width: 7px;
-  height: 7px;
-  margin-right: 7px;
-  border-radius: 50%;
-  background: #4ec9b0;
-  box-shadow: 0 0 9px #4ec9b0;
-}
-
-.auth-context footer span {
-  float: right;
+.system-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  margin-top: auto;
+  color: #425f64;
+  font: 8px ui-monospace, monospace;
+  letter-spacing: 0.07em;
 }
 
 .auth-form-panel {
   display: grid;
   place-items: center;
-  padding: 32px;
-  background: #252526;
+  padding: clamp(24px, 4vw, 64px);
+  background:
+    radial-gradient(circle at 100% 0, rgba(76, 215, 199, 0.08), transparent 30%),
+    linear-gradient(155deg, #0d1418, #080c0f 74%);
   overflow: auto;
 }
 
 .auth-form-wrap {
-  width: min(590px, 100%);
+  width: min(560px, 100%);
+}
+
+.panel-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 22px;
+}
+
+.panel-heading small,
+.panel-heading b {
+  display: block;
+}
+
+.panel-heading small {
+  color: #48d4c4;
+  font: 8px ui-monospace, monospace;
+  letter-spacing: 0.16em;
+}
+
+.panel-heading b {
+  margin-top: 6px;
+  color: #dfeceb;
+  font-size: 18px;
 }
 
 .auth-tabs {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  margin-bottom: 14px;
-  border-bottom: 1px solid #3c3c3c;
+  gap: 5px;
+  margin-bottom: 10px;
+  padding: 5px;
+  border: 1px solid #26373c;
+  border-radius: 12px;
+  background: #0a1014;
 }
 
 .auth-tabs button {
   border: 0;
   background: transparent;
-  color: #858585;
-  padding: 12px;
-  font-size: 12px;
+  color: #718388;
+  padding: 11px;
+  border-radius: 8px;
+  font-size: 11px;
   cursor: pointer;
 }
 
 .auth-tabs button.active {
-  color: #fff;
-  box-shadow: inset 0 -2px #3fb6ad;
+  color: #e9f4f3;
+  background: #173236;
+  box-shadow: inset 0 0 0 1px #2b5b5f;
 }
 
 .auth-form {
-  padding: 26px;
-  border: 1px solid #3c3c3c;
-  background: #1e1e1e;
-  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.33);
+  padding: clamp(24px, 3vw, 36px);
+  border: 1px solid #2a3b40;
+  border-radius: 16px;
+  background:
+    linear-gradient(145deg, rgba(24, 42, 46, 0.55), rgba(11, 18, 22, 0.88)),
+    #0c1317;
+  box-shadow: 0 34px 90px rgba(0, 0, 0, 0.42);
 }
 
 .auth-title {
-  margin-bottom: 18px;
+  margin-bottom: 24px;
 }
 
 .auth-title small {
-  color: #4ec9b0;
+  color: #49d6c6;
   font: 8px ui-monospace, monospace;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.17em;
 }
 
 .auth-title h1 {
-  margin: 7px 0;
-  font-size: 22px;
+  margin: 9px 0;
+  color: #f1f8f7;
+  font-size: 27px;
+  letter-spacing: -0.025em;
 }
 
 .auth-title p {
   margin: 0;
-  color: #858585;
+  color: #71878b;
   font-size: 10px;
-  line-height: 1.5;
+  line-height: 1.65;
 }
 
 .demo-access {
-  margin-bottom: 16px;
-  padding: 12px;
-  border: 1px solid #315448;
-  background: #0b1715;
+  margin-bottom: 20px;
+  padding: 14px;
+  border: 1px solid #29484c;
+  border-radius: 12px;
+  background: rgba(8, 23, 26, 0.72);
 }
 
 .demo-access-heading {
@@ -531,19 +899,19 @@ async function submitRegistration() {
 }
 
 .demo-access-heading small {
-  color: #4ec9b0;
+  color: #49d6c6;
   font: 7px ui-monospace, monospace;
   letter-spacing: 0.12em;
 }
 
 .demo-access-heading b {
   margin-top: 4px;
-  color: #dcdcaa;
+  color: #c2d4d5;
   font-size: 8px;
 }
 
 .demo-access-heading > span {
-  color: #78918c;
+  color: #58757a;
   font-size: 7px;
   white-space: nowrap;
 }
@@ -558,69 +926,85 @@ async function submitRegistration() {
 .role-card {
   width: 100%;
   display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 3px 9px;
+  grid-template-columns: 31px 1fr;
+  gap: 6px 9px;
   padding: 10px;
   text-align: left;
-  border: 1px solid #29443e;
-  background: #07100f;
-  color: #9bcabb;
+  border: 1px solid #253d41;
+  border-radius: 9px;
+  background: #091417;
+  color: #9bc5c6;
   cursor: pointer;
 }
 
 .role-card:hover {
-  border-color: #3b6b5e;
-  background: #102820;
+  border-color: #3e6669;
+  background: #102126;
 }
 
 .role-card.active {
-  border-color: #3fb6ad;
-  background: #102a2a;
-  box-shadow: inset 3px 0 #3fb6ad;
+  border-color: #47d8c8;
+  background: #10282b;
+  box-shadow: inset 0 0 0 1px rgba(71, 216, 200, 0.25);
 }
 
 .role-card > span {
-  grid-row: 1 / 3;
+  grid-row: 1;
   display: grid;
   place-items: center;
-  min-width: 42px;
-  color: #4ec9b0;
-  font: 700 9px ui-monospace, monospace;
+  width: 31px;
+  height: 31px;
+  border: 1px solid #31565a;
+  border-radius: 7px;
+  color: #4ad8c8;
+  font: 700 8px ui-monospace, monospace;
+}
+
+.role-card div {
+  min-width: 0;
+}
+
+.role-card b,
+.role-card code {
+  display: block;
 }
 
 .role-card b {
-  color: #f0f4f3;
+  color: #edf7f6;
   font-size: 10px;
 }
 
 .role-card code {
-  color: #9bcabb;
-  font: 8px ui-monospace, monospace;
+  margin-top: 3px;
+  overflow: hidden;
+  color: #6e9296;
+  font: 7px ui-monospace, monospace;
+  text-overflow: ellipsis;
 }
 
 .role-card small {
   grid-column: 1 / -1;
-  margin-top: 3px;
-  color: #68817a;
-  font-size: 8px;
+  color: #5d7a7f;
+  font-size: 7px;
   line-height: 1.4;
 }
 
 .auth-form > label,
 .register-grid label {
   display: block;
-  margin: 0 0 13px;
-  color: #a5a5a5;
+  margin: 0 0 15px;
+  color: #8da2a5;
   font-size: 10px;
 }
 
 .auth-form input {
   width: 100%;
-  margin-top: 6px;
-  border: 1px solid #4a4a4a;
-  background: #111;
-  color: #e8e8e8;
-  padding: 10px 12px;
+  margin-top: 7px;
+  border: 1px solid #304449;
+  border-radius: 8px;
+  background: #080e11;
+  color: #eef6f5;
+  padding: 12px 13px;
   outline: none;
   font-size: 12px;
 }
@@ -639,7 +1023,7 @@ fieldset {
 
 legend {
   margin-bottom: 7px;
-  color: #a5a5a5;
+  color: #8da2a5;
   font-size: 10px;
 }
 
@@ -653,16 +1037,17 @@ legend {
   min-height: 82px;
   padding: 10px;
   text-align: left;
-  border: 1px solid #3c3c3c;
-  background: #252526;
-  color: #d4d4d4;
+  border: 1px solid #2a3d42;
+  border-radius: 9px;
+  background: #10191d;
+  color: #d8e7e6;
   cursor: pointer;
 }
 
 .application-role-grid button.active {
-  border-color: #3fb6ad;
-  background: #102a2a;
-  box-shadow: inset 3px 0 #3fb6ad;
+  border-color: #47d8c8;
+  background: #10282b;
+  box-shadow: inset 0 0 0 1px rgba(71, 216, 200, 0.25);
 }
 
 .application-role-grid b,
@@ -672,14 +1057,14 @@ legend {
 
 .application-role-grid small {
   margin-top: 7px;
-  color: #78918c;
+  color: #668287;
   font-size: 8px;
   line-height: 1.4;
 }
 
 .password-policy {
   margin: -4px 0 13px;
-  color: #78918c;
+  color: #668287;
   font-size: 9px;
 }
 
@@ -694,20 +1079,20 @@ legend {
   width: 52px;
   height: 52px;
   margin: 0 auto 14px;
-  border: 1px solid #4ec9b0;
+  border: 1px solid #47d8c8;
   border-radius: 50%;
-  color: #4ec9b0;
+  color: #47d8c8;
   font-size: 22px;
 }
 
 .registration-complete p {
   margin-bottom: 20px;
-  color: #9bcabb;
+  color: #8bb5b7;
 }
 
 .auth-form input:focus {
-  border-color: #3fb6ad;
-  box-shadow: 0 0 0 1px #3fb6ad;
+  border-color: #47d8c8;
+  box-shadow: 0 0 0 2px rgba(71, 216, 200, 0.13);
 }
 
 .password-field {
@@ -720,30 +1105,43 @@ legend {
 
 .password-field button {
   margin-top: 6px;
-  border: 1px solid #4a4a4a;
+  border: 1px solid #304449;
   border-left: 0;
-  background: #252526;
-  color: #9d9d9d;
+  border-radius: 0 8px 8px 0;
+  background: #152126;
+  color: #8aa1a5;
   padding: 0 12px;
   font-size: 9px;
   cursor: pointer;
 }
 
+.password-field input {
+  border-radius: 8px 0 0 8px;
+}
+
 .auth-submit {
   width: 100%;
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  border: 1px solid #168d78;
-  background: #0e6657;
-  color: #fff;
-  padding: 12px 14px;
+  border: 1px solid #3fd1c0;
+  border-radius: 9px;
+  background: linear-gradient(100deg, #147c73, #176b70);
+  color: #f3fffd;
+  padding: 13px 14px;
   font-weight: 700;
   font-size: 11px;
   cursor: pointer;
+  box-shadow: 0 12px 30px rgba(25, 154, 142, 0.18);
 }
 
 .auth-submit:hover {
-  background: #117867;
+  background: linear-gradient(100deg, #198c82, #197c82);
+}
+
+.auth-submit b {
+  font: 8px ui-monospace, monospace;
+  letter-spacing: 0.08em;
 }
 
 .auth-submit:disabled {
@@ -760,7 +1158,7 @@ legend {
 
 .auth-message.error {
   border-color: #f48771;
-  background: #351c19;
+  background: #2e1717;
   color: #f5b0a3;
 }
 
@@ -772,9 +1170,10 @@ legend {
 
 .security-note {
   margin-top: 14px;
-  padding: 10px 12px;
-  border: 1px solid #29443e;
-  background: #0b1715;
+  padding: 11px 12px;
+  border: 1px solid #263f43;
+  border-radius: 9px;
+  background: #0b181b;
 }
 
 .security-note b,
@@ -783,40 +1182,42 @@ legend {
 }
 
 .security-note b {
-  color: #4ec9b0;
+  color: #47d8c8;
   font: 8px ui-monospace, monospace;
   letter-spacing: 0.1em;
 }
 
 .security-note span {
   margin-top: 5px;
-  color: #78918c;
+  color: #668287;
   font-size: 8px;
   line-height: 1.5;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1080px) {
   .auth-shell {
     grid-template-columns: 1fr;
   }
 
   .auth-context {
     min-height: auto;
-    padding: 28px;
+    padding: 28px clamp(24px, 6vw, 64px);
   }
 
-  .project-disclosure ol {
-    max-height: none;
+  .hero-copy h1 {
+    font-size: clamp(42px, 9vw, 68px);
   }
 
   .auth-form-panel {
-    padding: 28px 18px;
+    min-height: 760px;
+    padding: 48px 24px;
   }
 }
 
-@media (max-width: 560px) {
+@media (max-width: 640px) {
   .auth-context {
-    padding: 22px;
+    gap: 19px;
+    padding: 22px 18px;
   }
 
   .auth-form-panel {
@@ -828,7 +1229,8 @@ legend {
   }
 
   .register-grid,
-  .application-role-grid {
+  .application-role-grid,
+  .runtime-metrics {
     grid-template-columns: 1fr;
   }
 
@@ -841,18 +1243,37 @@ legend {
     grid-template-columns: 1fr;
   }
 
-  .project-disclosure li {
-    grid-template-columns: 26px 1fr;
+  .module-rack {
+    grid-template-columns: 1fr 1fr;
   }
 
-  .project-disclosure li > p {
-    text-align: left;
+  .signal-flow {
+    grid-template-columns: auto 1fr auto;
   }
 
-  .auth-context footer span {
-    display: block;
-    float: none;
-    margin-top: 7px;
+  .signal-flow > :nth-child(4),
+  .signal-flow > :nth-child(5),
+  .signal-flow > :nth-child(6),
+  .signal-flow > :nth-child(7) {
+    display: none;
+  }
+
+  .project-disclosure summary small,
+  .panel-heading > span {
+    display: none;
+  }
+
+  .system-footer {
+    flex-direction: column;
+  }
+
+  .system-header {
+    align-items: flex-start;
+  }
+
+  .runtime-live {
+    padding-top: 8px;
+    font-size: 7px;
   }
 }
 </style>

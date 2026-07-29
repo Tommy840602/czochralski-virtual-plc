@@ -6,7 +6,7 @@ from typing import Literal
 from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-# backend/app/core/config.py -> backend/app -> backend -> plc-research -> output
+# backend/app/core/config.py -> backend/app -> backend -> cz-virtual-plc -> output
 _DEFAULT_DATA_ROOT = str(Path(__file__).resolve().parents[3].parent)
 DEFAULT_AUTH_USERNAME = "admin"
 DEFAULT_AUTH_PASSWORD = "admin0000"

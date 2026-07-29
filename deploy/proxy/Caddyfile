@@ -1,7 +1,7 @@
 # 共享反向代理設定。每個專案一個 block；把網域換成你自己的。
 # Caddy 會自動向 Let's Encrypt 申請並續期 TLS 憑證（需 DNS A 記錄已指向本機 IP）。
 
-# ---- PLC 研究平台 ----
+# ---- CZ Virtual PLC ----
 plc.tommy-huang.dev {
 	encode zstd gzip
 	reverse_proxy plc_frontend:80

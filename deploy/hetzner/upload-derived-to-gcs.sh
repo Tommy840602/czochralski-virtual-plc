@@ -3,7 +3,7 @@
 # 在「本機 output/ 目錄」執行（即含這些檔的資料夾）。透過伺服器上 spc-backend 容器
 # 的 SA 金鑰寫入 GCS（該金鑰有 create 權限）。
 #
-#   用法： cd /你的/output && bash plc-research/deploy/hetzner/upload-derived-to-gcs.sh
+#   用法： cd /你的/output && bash cz-virtual-plc/deploy/hetzner/upload-derived-to-gcs.sh
 #
 # 需可 SSH 到伺服器（金鑰已在 ssh-agent）。
 
