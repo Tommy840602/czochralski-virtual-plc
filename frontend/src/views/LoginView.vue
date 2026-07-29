@@ -1276,4 +1276,126 @@ legend {
     font-size: 7px;
   }
 }
+
+/* PLC identity palette: carbon cabinet, amber HMI indicators. */
+.auth-shell {
+  background: #0b0a08;
+  color: #e4dac9;
+}
+
+.auth-context {
+  background:
+    linear-gradient(rgba(255, 180, 74, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 180, 74, 0.035) 1px, transparent 1px),
+    radial-gradient(circle at 12% 8%, rgba(255, 180, 74, 0.17), transparent 28%),
+    radial-gradient(circle at 85% 58%, rgba(119, 70, 22, 0.18), transparent 32%),
+    #100e0a;
+  border-color: #3b3021;
+}
+
+.system-header,
+.plc-console,
+.console-topbar,
+.project-disclosure,
+.project-disclosure summary,
+.system-footer {
+  border-color: #403421;
+}
+
+.system-brand b,
+.hero-copy h1,
+.hero-copy h2,
+.auth-title h1,
+.panel-heading b {
+  color: #fff8eb;
+}
+
+.system-brand small,
+.hero-copy > p:first-child,
+.hero-copy h1 span,
+.runtime-live,
+.auth-title small,
+.panel-heading small,
+.role-card.active b {
+  color: #ffb44a;
+}
+
+.runtime-live i,
+.module-leds i,
+.runtime-metrics b i {
+  background: #75d59b;
+}
+
+.plc-console {
+  background: rgba(19, 16, 11, 0.9);
+  box-shadow: 0 26px 80px rgba(0, 0, 0, 0.4);
+}
+
+.console-topbar,
+.module-rack article,
+.runtime-metrics article,
+.auth-tabs,
+.security-note {
+  background: #1a1712;
+}
+
+.console-topbar > div i:first-child,
+.console-topbar > span,
+.signal-flow i,
+.password-field button {
+  color: #ffb44a;
+}
+
+.module-rack article,
+.runtime-metrics article,
+.role-card,
+.auth-form input,
+.application-role-grid button,
+.security-note {
+  border-color: #453925;
+}
+
+.module-rack span,
+.runtime-metrics span,
+.project-disclosure summary,
+.project-disclosure li,
+.hero-description,
+.auth-title p,
+.role-card small {
+  color: #9e907c;
+}
+
+.auth-form-panel {
+  background:
+    radial-gradient(circle at 100% 0, rgba(255, 180, 74, 0.09), transparent 30%),
+    linear-gradient(155deg, #15110c, #0b0a08 74%);
+}
+
+.auth-form {
+  background:
+    linear-gradient(145deg, rgba(54, 43, 27, 0.58), rgba(15, 12, 9, 0.9)),
+    #13110e;
+  border-color: #4a3c28;
+}
+
+.auth-tabs button.active,
+.role-card.active,
+.application-role-grid button.active,
+.auth-form input:focus {
+  color: #ffc66f;
+  background: #2a2115;
+  border-color: #ffb44a;
+  box-shadow: inset 0 0 0 1px rgba(255, 180, 74, 0.2);
+}
+
+.auth-submit {
+  color: #251504;
+  background: linear-gradient(100deg, #ffb44a, #db8d37);
+  border-color: #ffc66f;
+  box-shadow: 0 12px 30px rgba(219, 141, 55, 0.2);
+}
+
+.auth-submit:hover {
+  background: linear-gradient(100deg, #ffc66f, #e99a3d);
+}
 </style>

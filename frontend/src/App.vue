@@ -217,8 +217,8 @@ function logout() {
   display: grid;
   grid-template-columns: 264px minmax(0, 1fr);
   background:
-    linear-gradient(rgba(65, 222, 201, 0.018) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(65, 222, 201, 0.018) 1px, transparent 1px),
+    linear-gradient(rgba(255, 180, 74, 0.022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 180, 74, 0.022) 1px, transparent 1px),
     var(--bg);
   background-size: 48px 48px;
 }

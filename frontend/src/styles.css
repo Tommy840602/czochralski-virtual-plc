@@ -1,78 +1,78 @@
 /* CZ Virtual PLC · industrial control design system */
 :root,
 :root[data-theme='dark'] {
-  --bg: #070c0f;
-  --surface: #0d1519;
-  --surface-2: #111d21;
-  --surface-3: #16262a;
-  --border: #1b2a2f;
-  --border-strong: #2b4147;
-  --text-strong: #f1f7f6;
-  --text: #d6dfde;
-  --text-dim: #879795;
-  --text-faint: #536562;
-  --accent: #4dd7c7;
-  --accent-strong: #69e4d5;
-  --accent-weak: rgba(77, 215, 199, 0.105);
-  --accent-line: rgba(77, 215, 199, 0.42);
-  --ok: #63e6a8;
-  --warn: #efbe68;
-  --danger: #f17672;
-  --g1: #65a9e8;
-  --g2: #efbe68;
-  --g3: #f17672;
-  --g4: #63e6a8;
-  --chart-text: #879795;
-  --chart-grid: #162429;
-  --chart-axis: #2b4147;
-  --chart-tt-bg: #0c161a;
-  --chart-tt-border: #2b4147;
-  --band-fill: rgba(99, 230, 168, 0.14);
-  --series-1: #65a9e8;
-  --series-2: #efbe68;
-  --series-3: #f17672;
-  --series-4: #63e6a8;
-  --series-5: #b493e9;
-  --series-6: #4dd7c7;
+  --bg: #0b0a08;
+  --surface: #13110e;
+  --surface-2: #1a1712;
+  --surface-3: #242018;
+  --border: #30291e;
+  --border-strong: #4a3c28;
+  --text-strong: #fff8eb;
+  --text: #e4dac9;
+  --text-dim: #a2947e;
+  --text-faint: #6e6251;
+  --accent: #ffb44a;
+  --accent-strong: #ffc66f;
+  --accent-weak: rgba(255, 180, 74, 0.105);
+  --accent-line: rgba(255, 180, 74, 0.42);
+  --ok: #75d59b;
+  --warn: #ffb44a;
+  --danger: #f27463;
+  --g1: #75aee6;
+  --g2: #ffb44a;
+  --g3: #f27463;
+  --g4: #75d59b;
+  --chart-text: #a2947e;
+  --chart-grid: #272219;
+  --chart-axis: #4a3c28;
+  --chart-tt-bg: #17130e;
+  --chart-tt-border: #4a3c28;
+  --band-fill: rgba(117, 213, 155, 0.14);
+  --series-1: #75aee6;
+  --series-2: #ffb44a;
+  --series-3: #f27463;
+  --series-4: #75d59b;
+  --series-5: #b497df;
+  --series-6: #db8d37;
   --shadow: 0 16px 46px rgba(0, 0, 0, 0.32);
   --mono: 'SF Mono', 'JetBrains Mono', 'Cascadia Code', ui-monospace, Menlo, monospace;
 }
 
 :root[data-theme='light'] {
-  --bg: #edf2f0;
-  --surface: #f8fbfa;
-  --surface-2: #eef5f3;
-  --surface-3: #e5efec;
-  --border: #d5e0dd;
-  --border-strong: #b9cbc6;
-  --text-strong: #10201f;
-  --text: #203431;
-  --text-dim: #61736f;
-  --text-faint: #8c9b98;
-  --accent: #087f76;
-  --accent-strong: #056b64;
-  --accent-weak: rgba(8, 127, 118, 0.1);
-  --accent-line: rgba(8, 127, 118, 0.36);
-  --ok: #21885a;
-  --warn: #a86b15;
-  --danger: #bf4541;
-  --g1: #347db9;
-  --g2: #a86b15;
-  --g3: #bf4541;
-  --g4: #21885a;
-  --chart-text: #61736f;
-  --chart-grid: #dfe8e5;
-  --chart-axis: #b9cbc6;
-  --chart-tt-bg: #f8fbfa;
-  --chart-tt-border: #b9cbc6;
-  --band-fill: rgba(33, 136, 90, 0.12);
-  --series-1: #347db9;
-  --series-2: #a86b15;
-  --series-3: #bf4541;
-  --series-4: #21885a;
-  --series-5: #7557a3;
-  --series-6: #087f76;
-  --shadow: 0 16px 44px rgba(40, 65, 58, 0.1);
+  --bg: #f2eee6;
+  --surface: #fffdf8;
+  --surface-2: #f7f0e4;
+  --surface-3: #ede3d4;
+  --border: #e0d4c3;
+  --border-strong: #c8b69c;
+  --text-strong: #251c12;
+  --text: #423527;
+  --text-dim: #796a57;
+  --text-faint: #9e907c;
+  --accent: #ad6500;
+  --accent-strong: #8d5000;
+  --accent-weak: rgba(173, 101, 0, 0.1);
+  --accent-line: rgba(173, 101, 0, 0.36);
+  --ok: #287c4d;
+  --warn: #ad6500;
+  --danger: #bc493d;
+  --g1: #3477b2;
+  --g2: #ad6500;
+  --g3: #bc493d;
+  --g4: #287c4d;
+  --chart-text: #796a57;
+  --chart-grid: #e8dece;
+  --chart-axis: #c8b69c;
+  --chart-tt-bg: #fffdf8;
+  --chart-tt-border: #c8b69c;
+  --band-fill: rgba(40, 124, 77, 0.12);
+  --series-1: #3477b2;
+  --series-2: #ad6500;
+  --series-3: #bc493d;
+  --series-4: #287c4d;
+  --series-5: #74509c;
+  --series-6: #ad6500;
+  --shadow: 0 16px 44px rgba(67, 46, 20, 0.12);
 }
 
 * {
@@ -115,7 +115,7 @@ a {
 }
 
 ::selection {
-  color: #04110f;
+  color: #211302;
   background: var(--accent);
 }
 
@@ -183,7 +183,7 @@ h3 {
   overflow: hidden;
   padding: 18px 20px;
   background:
-    linear-gradient(135deg, rgba(77, 215, 199, 0.018), transparent 32%),
+    linear-gradient(135deg, rgba(255, 180, 74, 0.025), transparent 32%),
     var(--surface);
   border: 1px solid var(--border);
   border-radius: 9px;
@@ -382,7 +382,7 @@ input[type='range'] {
   color: var(--accent-strong);
   background: var(--accent-weak);
   border-color: var(--accent);
-  box-shadow: 0 0 12px rgba(77, 215, 199, 0.06) inset;
+  box-shadow: 0 0 12px rgba(255, 180, 74, 0.07) inset;
 }
 
 .btn {
@@ -406,11 +406,11 @@ input[type='range'] {
 }
 
 .btn.primary {
-  color: #031715;
+  color: #251504;
   background: var(--accent);
   border-color: var(--accent);
   font-weight: 650;
-  box-shadow: 0 0 18px rgba(77, 215, 199, 0.12);
+  box-shadow: 0 0 18px rgba(255, 180, 74, 0.14);
 }
 
 .btn.primary:hover {
