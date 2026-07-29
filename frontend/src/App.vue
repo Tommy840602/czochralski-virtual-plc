@@ -292,6 +292,7 @@ function logout() {
   font-weight: 680;
   line-height: 1.2;
   letter-spacing: 0.4px;
+  white-space: nowrap;
 }
 
 .brand-kicker,
@@ -715,6 +716,22 @@ function logout() {
 @media (max-width: 1050px) {
   .app-shell {
     grid-template-columns: 226px minmax(0, 1fr);
+  }
+
+  .brand {
+    gap: 10px;
+    padding-inline: 14px;
+  }
+
+  .brand-text h1 {
+    font-size: 14px;
+    letter-spacing: 0.2px;
+  }
+
+  .brand-kicker,
+  .brand-subtitle {
+    font-size: 7px;
+    letter-spacing: 0.8px;
   }
 
   .system-health .health-item:not(.clock) {
