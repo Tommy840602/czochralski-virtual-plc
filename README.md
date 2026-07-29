@@ -3,7 +3,7 @@
 
   # CZ Virtual PLC
 
-  **設備控制與製程研究平台**
+  **設備控制平台**
 
   將獨立 Plant Simulator 的製程數值轉成可掃描、可聯鎖、可追蹤的 PLC tag，
   再以版本化契約交付 CZ DCS。
