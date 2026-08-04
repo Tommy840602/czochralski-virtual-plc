@@ -1,0 +1,41 @@
+{
+  "service": "CZ Virtual PLC",
+  "target": "https://plc.tommy-huang.dev",
+  "executedAt": "2026-08-04T10:15:43+08:00",
+  "profiles": {
+    "smoke": {
+      "maxActiveVus": 1,
+      "requests": 15,
+      "requestsPerSecond": 1.1688,
+      "httpErrorRate": 0.0,
+      "averageMs": 493.1,
+      "p95Ms": 1923.7,
+      "maxMs": 1939.4,
+      "readyzP95Ms": 1934.9
+    },
+    "baseline": {
+      "maxActiveVus": 10,
+      "requests": 940,
+      "requestsPerSecond": 9.2944,
+      "httpErrorRate": 0.0,
+      "averageMs": 191.7,
+      "p95Ms": 199.5,
+      "maxMs": 224.2
+    },
+    "breakpoint": {
+      "plannedMaxVus": 5000,
+      "maxActiveVus": 1854,
+      "requests": 113918,
+      "requestsPerSecond": 553.9,
+      "httpErrorRate": 0.01114,
+      "checksSucceededRate": 0.98886,
+      "averageMs": 462.3,
+      "p95Ms": 1257.0,
+      "p99Ms": 4370.0,
+      "maxMs": 10010.8,
+      "completedIterations": 56383,
+      "interruptedIterations": 1854,
+      "stopReason": "http_req_failed rate reached 1%"
+    }
+  }
+}

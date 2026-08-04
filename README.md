@@ -176,6 +176,9 @@ npm run build
 
 測試涵蓋 PLC scan、Plant adapter、DCS 契約與 health endpoint 的安全邊界。
 
+正式環境 smoke、10-VU baseline 與 breakpoint 結果見
+[load-tests/README.md](load-tests/README.md)。
+
 ## 部署
 
 `.github/workflows/ci-cd.yml` 在 Pull Request 與 `main` push 時驗證後端、前端及部署設定；
